@@ -463,7 +463,14 @@ def plot_center_dist(ops,adv,trial_data,cluster_data,spike_data,self):
         cluster_data['saved']['plot_center_dist'] = True
         
         
-def plot_center_ego_hd_map(ops,adv,trial_data,cluster_data,spike_data,self):
+def plot_center_ego_hd_map(ops,adv,trial_data,cluster_data,spike_data,self):\
+
+    axis_range = np.max([np.max(trial_data['center_x'])-np.min(trial_data['center_x']),np.max(trial_data['center_y'])-np.min(trial_data['center_y'])])
+    min_y = np.mean([np.max(trial_data['center_y']),np.min(trial_data['center_y'])]) - axis_range/2.
+    max_y = np.mean([np.max(trial_data['center_y']),np.min(trial_data['center_y'])]) + axis_range/2.
+    min_x = np.mean([np.max(trial_data['center_x']),np.min(trial_data['center_x'])]) - axis_range/2.
+    max_x = np.mean([np.max(trial_data['center_x']),np.min(trial_data['center_x'])]) + axis_range/2.
+
     #create the color map for the plot according to the range of possible angles
     colormap = plt.get_cmap('hsv')
     norm = mplcolors.Normalize(vmin=0, vmax=360)
@@ -476,12 +483,13 @@ def plot_center_ego_hd_map(ops,adv,trial_data,cluster_data,spike_data,self):
     cax = divider.append_axes('right', size='5%', pad=0.05)
     
     #axes set to min and max x and y values in dataset
-    ax.set_ylim([min(trial_data['center_y']),max(trial_data['center_y'])])
-    ax.set_xlim([min(trial_data['center_x']),max(trial_data['center_x'])]) 
+    ax.set_ylim([min_y,max_y])
+    ax.set_xlim([min_x,max_x]) 
 
     #make a scatter plot of spike locations colored by head direction
     im=ax.scatter(spike_data['spike_x'],spike_data['spike_y'],c=spike_data['center_ego_angles'],cmap=colormap,norm=norm)
-    self.figure.colorbar(im, cax=cax, orientation='vertical')
+    cbar = self.figure.colorbar(im, cax=cax, orientation='vertical')
+    cbar.set_ticks([0,90,180,270,360])
     
     egopath = cluster_data['new_folder']+'/egocentric'
     
@@ -644,6 +652,13 @@ def plot_wall_voronoi(ops,adv,trial_data,cluster_data,spike_data):
 
         
 def plot_wall_ego_hd_map(ops,adv,trial_data,cluster_data,spike_data,self):
+    
+    axis_range = np.max([np.max(trial_data['center_x'])-np.min(trial_data['center_x']),np.max(trial_data['center_y'])-np.min(trial_data['center_y'])])
+    min_y = np.mean([np.max(trial_data['center_y']),np.min(trial_data['center_y'])]) - axis_range/2.
+    max_y = np.mean([np.max(trial_data['center_y']),np.min(trial_data['center_y'])]) + axis_range/2.
+    min_x = np.mean([np.max(trial_data['center_x']),np.min(trial_data['center_x'])]) - axis_range/2.
+    max_x = np.mean([np.max(trial_data['center_x']),np.min(trial_data['center_x'])]) + axis_range/2.
+
     #create the color map for the plot according to the range of possible angles
     colormap = plt.get_cmap('hsv')
     norm = mplcolors.Normalize(vmin=0, vmax=360)
@@ -656,8 +671,8 @@ def plot_wall_ego_hd_map(ops,adv,trial_data,cluster_data,spike_data,self):
     cax = divider.append_axes('right', size='5%', pad=0.05)
     
     #axes set to min and max x and y values in dataset
-    ax.set_ylim([min(trial_data['center_y']),max(trial_data['center_y'])])
-    ax.set_xlim([min(trial_data['center_x']),max(trial_data['center_x'])]) 
+    ax.set_ylim([min_y,max_y])
+    ax.set_xlim([min_x,max_x]) 
 
     #make a scatter plot of spike locations colored by head direction
     im=ax.scatter(spike_data['spike_x'],spike_data['spike_y'],c=spike_data['wall_ego_angles'],cmap=colormap,norm=norm)

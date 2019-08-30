@@ -170,12 +170,14 @@ def center_points(ops,adv,trial_data):
 
     #interpolates new timestamps between existing timestamps for spike time     
     #analyses to reach temporal precision given by bin_size variable 
-    spike_timestamps = []
-    for i in range(len(timestamps)):
-        if i < len(timestamps)-1:
-            increment = (timestamps[i+1]-timestamps[i])/(1000./(adv['framerate']*adv['bin_size']))
-            for j in range(int(1000./((adv['framerate']*adv['bin_size'])))):
-                spike_timestamps.append(timestamps[i]+j*increment)
+    spike_timestamps = np.arange(np.min(timestamps),np.max(timestamps),adv['bin_size']*1000.)
+
+#    spike_timestamps = []
+#    for i in range(len(timestamps)):
+#        if i < len(timestamps)-1:
+#            increment = (timestamps[i+1]-timestamps[i])/(1000./(adv['framerate']*adv['bin_size']))
+#            for j in range(int(1000./((adv['framerate']*adv['bin_size'])))):
+#                spike_timestamps.append(timestamps[i]+j*increment)
     
                 
     #return coordinates of head center and timestamps for spatial and spike
@@ -773,37 +775,38 @@ def plot_half_hds(ops,adv,trial_data,cluster_data,spike_data,self):
     
     #grab appropriate tracking and spike data
     angles = trial_data['angles']
-    spike_angles = spike_data['spike_angles']
+    spike_train = spike_data['ani_spikes']
     
-    #break HD angles and spikes down the middle into two lists
-    half_angles = [angles[:np.int(len(angles)/2)],angles[np.int(len(angles)/2):]]
-    half_spike_angles = [spike_angles[:cluster_data['halfway_ind']],spike_angles[cluster_data['halfway_ind']:]]
-
-    rates = [[],[]]
-    hd_angles = [[],[]]    
-    #for each half of the session
-    for i in range(2):
-        #create angle histograms for spikes and total occupancies
-        spike_hd_hist = np.histogram(half_spike_angles[i],bins=adv['hd_bins'],range=(0,360))
-        hd_hist = np.histogram(half_angles[i],bins=adv['hd_bins'],range=(0,360))
-        #make them lists and add first element to end (circular data)
-        spike_hd_vals = spike_hd_hist[0].tolist()
-        spike_hd_vals.append(spike_hd_vals[0])
-        hd_vals = hd_hist[0].tolist()
-        hd_vals.append(hd_vals[0])
-        #convert occupancy counts to times by dividing by framerate
-        for j in range(len(hd_vals)):
-            hd_vals[j] = float(hd_vals[j])*1/adv['framerate']
-        #divide spike counts by occupancy times to get firing rates
-        for val in range(len(spike_hd_vals)):
-            #set empty bins to zero (#TODO: mask these values)
-            if hd_vals[val] == 0:
-                rates[i].append(0)
-            else:
-                rates[i].append(spike_hd_vals[val]/hd_vals[val])
-        #grab angle ticks for plotting
-        hd_angles[i] = hd_hist[1].tolist()
-                      
+    midpoint = int(len(angles)/2)
+    
+    hd_angles = []
+    rates = []
+    
+    for pair in [[0,midpoint],[midpoint,len(angles)]]:
+        
+        spikes = np.zeros(adv['hd_bins'])
+        occ = np.zeros(adv['hd_bins'])
+        
+        half_angles = angles[pair[0]:pair[1]]
+        half_spikes = spike_train[pair[0]:pair[1]]
+        
+        ref_angles = np.linspace(0,360,adv['hd_bins'],endpoint=False)
+        
+        angle_bins = np.digitize(half_angles,ref_angles)-1
+        
+        for i in range(len(half_angles)):
+            spikes[angle_bins[i]] += half_spikes[i]
+            occ[angle_bins[i]] += 1./adv['framerate']
+            
+        curve = spikes/occ
+        
+        curve = np.append(curve,curve[0])
+        ref_angles = np.append(ref_angles,360)
+        
+        rates.append(list(curve))
+        hd_angles.append(list(ref_angles))
+        
+    
     #send new data to cluster data dict
     cluster_data['half_hd_angles'] = hd_angles
     cluster_data['half_hd_rates'] = rates
@@ -971,31 +974,132 @@ def grid_score(ops,adv,trial_data,cluster_data,spike_data,self):
 
     return cluster_data
 
+#def kalman_xy(x, P, measurement, R,
+#              motion = np.matrix('0. 0. 0. 0.').T,
+#              Q = np.matrix(np.eye(4))):
+#    """
+#    Parameters:    
+#    x: initial state 4-tuple of location and velocity: (x0, x1, x0_dot, x1_dot)
+#    P: initial uncertainty convariance matrix
+#    measurement: observed position
+#    R: measurement noise 
+#    motion: external motion added to state vector x
+#    Q: motion noise (same shape as P)
+#    """
+#    return kalman(x, P, measurement, R, motion, Q,
+#                  F = np.matrix('''
+#                      1. 0. 1. 0.;
+#                      0. 1. 0. 1.;
+#                      0. 0. 1. 0.;
+#                      0. 0. 0. 1.
+#                      '''),
+#                  H = np.matrix('''
+#                      1. 0. 0. 0.;
+#                      0. 1. 0. 0.'''))
+#
+#def kalman(x, P, measurement, R, motion, Q, F, H):
+#    '''
+#    Parameters:
+#    x: initial state
+#    P: initial uncertainty convariance matrix
+#    measurement: observed position (same shape as H*x)
+#    R: measurement noise (same shape as H)
+#    motion: external motion added to state vector x
+#    Q: motion noise (same shape as P)
+#    F: next state function: x_prime = F*x
+#    H: measurement function: position = H*x
+#
+#    Return: the updated and predicted new values for (x, P)
+#
+#    See also http://en.wikipedia.org/wiki/Kalman_filter
+#
+#    This version of kalman can be applied to many different situations by
+#    appropriately defining F and H 
+#    '''
+#    # UPDATE x, P based on measurement m    
+#    # distance between measured and current position-belief
+#    y = np.matrix(measurement).T - H * x
+#    S = H * P * H.T + R  # residual convariance
+#    K = P * H.T * S.I    # Kalman gain
+#    x = x + K*y
+#    I = np.matrix(np.eye(F.shape[0])) # identity matrix
+#    P = (I - K*H)*P
+#
+#    # PREDICT x, P based on motion
+#    x = F*x + motion
+#    P = F*P*F.T + Q
+#
+#    return x, P
+#
+#def demo_kalman_xy(trial_data):
+#    x = np.matrix('0. 0. 0. 0.').T 
+#    P = np.matrix(np.eye(4))*1000 # initial uncertainty
+#    
+#    import matplotlib.pyplot as plt
+#
+##    N = 20
+##    true_x = np.linspace(0.0, 10.0, N)
+##    true_y = true_x**2
+#    observed_x = np.array(trial_data['center_x'])
+#    observed_y = np.array(trial_data['center_y'])
+##    plt.plot(observed_x, observed_y, 'ro')
+#    result = []
+#    R = 0.01**2
+#    for meas in zip(observed_x, observed_y):
+#        x, P = kalman_xy(x, P, meas, R)
+#        result.append((x[:2]).tolist())
+#    kalman_x, kalman_y = zip(*result)
+#    plt.figure
+#    plt.plot(kalman_x)
+#    plt.plot(observed_x)
+#    plt.show()
+#
+#demo_kalman_xy()
+
 def calc_movement_direction(adv,trial_data):
     
     #grab appropriate tracking data
     center_x=trial_data['center_x']
     center_y=trial_data['center_y']
     
+    from astropy.convolution import convolve
+    from astropy.convolution.kernels import Gaussian1DKernel, Box1DKernel
+    
+    smooth_x = convolve(center_x,kernel=Gaussian1DKernel(stddev=5))
+    smooth_y = convolve(center_y,kernel=Gaussian1DKernel(stddev=5))
+    
+    dx = smooth_x - np.roll(smooth_x,1)
+    dy = smooth_y - np.roll(smooth_y,1)
+    
+    mds = np.rad2deg(np.arctan2(dy,dx))%360
+    
     #make an array of zeros to assign speeds to
-    mds = np.zeros(len(center_x),dtype=np.float)
-    #for every frame from 2 to total - 2...
-    for i in range(2,len(center_x)-2):
-        #grab 5 x and y positions centered on that frame
-        x_list = center_x[(i-2):(i+3)]
-        y_list = center_y[(i-2):(i+3)]
-        #find the best fit line for those 5 points (slopes are x and y components
-        #of velocity)
-        xfitline = np.polyfit(range(0,5),x_list,1)
-        yfitline = np.polyfit(range(0,5),y_list,1)
-        #total velocity = framerate * sqrt(x component squared plus y component squared)
-        mds[i] = np.rad2deg(np.arctan2(yfitline[0],xfitline[0]))%360
-#        adv['framerate']*np.sqrt(xfitline[0]**2 + yfitline[0]**2)
-    #set unassigned speeds equal to closest assigned speed
-    mds[0] = mds[2]
-    mds[1] = mds[2]
-    mds[len(mds)-1] = mds[len(mds)-3]
-    mds[len(mds)-2] = mds[len(mds)-3]
+#    mds = np.zeros(len(center_x),dtype=np.float)
+#    xvals = np.zeros(len(center_x),dtype=np.float)
+#    yvals = np.zeros(len(center_x),dtype=np.float)
+#    #for every frame from 2 to total - 2...
+#    for i in range(2,len(center_x)-2):
+#        #grab 5 x and y positions centered on that frame
+#        x_list = center_x[(i-2):(i+3)]
+#        y_list = center_y[(i-2):(i+3)]
+#        #find the best fit line for those 5 points (slopes are x and y components
+#        #of velocity)
+#        xfitline = np.polyfit(range(0,5),x_list,1)
+#        yfitline = np.polyfit(range(0,5),y_list,1)
+#        #total velocity = framerate * sqrt(x component squared plus y component squared)
+#        xvals[i] = xfitline[0]
+#        yvals[i] = yfitline[0]
+#        
+#    from astropy.convolution.kernels import Gaussian1DKernel
+#    xvals = convolve(xvals,kernel=Gaussian1DKernel(stddev=2))
+#    yvals = convolve(yvals,kernel=Gaussian1DKernel(stddev=2))
+#    mds = np.rad2deg(np.arctan2(yvals,xvals))%360
+##        adv['framerate']*np.sqrt(xfitline[0]**2 + yfitline[0]**2)
+#    #set unassigned speeds equal to closest assigned speed
+#    mds[0] = mds[2]
+#    mds[1] = mds[2]
+#    mds[len(mds)-1] = mds[len(mds)-3]
+#    mds[len(mds)-2] = mds[len(mds)-3]
     
     #return calculated speeds
     trial_data['movement_directions'] = mds
@@ -1005,27 +1109,45 @@ def calc_speed(adv,trial_data):
     """calculates 'instantaneous' linear speeds for each video frame"""
     
     #grab appropriate tracking data
-    center_x=trial_data['center_x']
-    center_y=trial_data['center_y']
+#    center_x=trial_data['center_x']
+#    center_y=trial_data['center_y']
     
-    #make an array of zeros to assign speeds to
-    speeds = np.zeros(len(center_x),dtype=np.float)
-    #for every frame from 2 to total - 2...
-    for i in range(2,len(center_x)-2):
-        #grab 5 x and y positions centered on that frame
-        x_list = center_x[(i-2):(i+3)]
-        y_list = center_y[(i-2):(i+3)]
-        #find the best fit line for those 5 points (slopes are x and y components
-        #of velocity)
-        xfitline = np.polyfit(range(0,5),x_list,1)
-        yfitline = np.polyfit(range(0,5),y_list,1)
-        #total velocity = framerate * sqrt(x component squared plus y component squared)
-        speeds[i] = adv['framerate']*np.sqrt(xfitline[0]**2 + yfitline[0]**2)
-    #set unassigned speeds equal to closest assigned speed
-    speeds[0] = speeds[2]
-    speeds[1] = speeds[2]
-    speeds[len(speeds)-1] = speeds[len(speeds)-3]
-    speeds[len(speeds)-2] = speeds[len(speeds)-3]
+    center_x=np.array(trial_data['center_x'])
+    center_y=np.array(trial_data['center_y'])
+    
+    from astropy.convolution import convolve
+    from astropy.convolution.kernels import Gaussian1DKernel, Box1DKernel
+    
+    smooth_x = convolve(center_x,kernel=Gaussian1DKernel(stddev=5))
+    smooth_y = convolve(center_y,kernel=Gaussian1DKernel(stddev=5))
+    
+    dx = smooth_x - np.roll(smooth_x,1)
+    dy = smooth_y - np.roll(smooth_y,1)
+    
+    speeds = np.sqrt(dx**2 + dy**2)*adv['framerate']
+    speeds[speeds>100] = 100.
+    
+#    plt.plot(speeds)
+
+    
+#    #make an array of zeros to assign speeds to
+#    speeds = np.zeros(len(center_x),dtype=np.float)
+#    #for every frame from 2 to total - 2...
+#    for i in range(2,len(center_x)-2):
+#        #grab 5 x and y positions centered on that frame
+#        x_list = center_x[(i-2):(i+3)]
+#        y_list = center_y[(i-2):(i+3)]
+#        #find the best fit line for those 5 points (slopes are x and y components
+#        #of velocity)
+#        xfitline = np.polyfit(range(0,5),x_list,1)
+#        yfitline = np.polyfit(range(0,5),y_list,1)
+#        #total velocity = framerate * sqrt(x component squared plus y component squared)
+#        speeds[i] = adv['framerate']*np.sqrt(xfitline[0]**2 + yfitline[0]**2)
+#    #set unassigned speeds equal to closest assigned speed
+#    speeds[0] = speeds[2]
+#    speeds[1] = speeds[2]
+#    speeds[len(speeds)-1] = speeds[len(speeds)-3]
+#    speeds[len(speeds)-2] = speeds[len(speeds)-3]
     
     #return calculated speeds
     trial_data['speeds'] = speeds
@@ -1508,6 +1630,7 @@ def plot_center_ego(ops,adv,trial_data,cluster_data,spike_data,self):
     radial_dists = np.sqrt(center_x**2 + center_y**2)
     center_ego_angles = (np.rad2deg(np.arctan2(-center_y,-center_x)))%360
     center_ego_angles = (center_ego_angles-angles)%360
+#    center_ego_mds = (center_ego_angles - np.asarray(trial_data['movement_directions']))
     
     trial_data['center_ego_angles'] = center_ego_angles
 
@@ -1595,6 +1718,7 @@ def plot_center_ego(ops,adv,trial_data,cluster_data,spike_data,self):
     #send updated data to the gui
     self.worker.plotting_data.emit(ops,adv,trial_data,cluster_data,spike_data)
     
+#    plot_boundary_field(ops,adv,trial_data,cluster_data,spike_data,self)
     plot_mh_ego(ops,adv,trial_data,cluster_data,spike_data,self)
     
     slopes = center_y/center_x
@@ -1654,124 +1778,212 @@ def plot_center_ego(ops,adv,trial_data,cluster_data,spike_data,self):
     
     return cluster_data
 
-def plot_mh_ego(ops,adv,trial_data,cluster_data,spike_data,self):
-
-    #assign grid_res and hd_bins to shorter var for easier reading
-    gr = adv['grid_res']
-    framerate = adv['framerate']
-
-    #grab appropriate data
-    center_x = np.asarray(trial_data['center_x'])
-    center_y = np.asarray(trial_data['center_y'])
-    angles = np.asarray(trial_data['angles'])
-    spike_train = np.asarray(spike_data['ani_spikes'])
-
-    center_x -= np.min(center_x)
-    center_y -= np.min(center_y)
-    center_x -= (np.max(center_x) - np.min(center_x))/2
-    center_y -= (np.max(center_y) - np.min(center_y))/2
+def calc_wall_dists(center_x,center_y,angles,xres,yres):
     
-    xcoords = np.linspace(np.min(center_x),np.max(center_x),gr,endpoint=False)
-    ycoords = np.linspace(np.min(center_y),np.max(center_y),gr,endpoint=False)
-    w1 = np.stack((xcoords,np.repeat(np.max(ycoords),gr)))
-    w3 = np.stack((xcoords,np.repeat(np.min(ycoords),gr)))
-    w2 = np.stack((np.repeat(np.max(xcoords),gr),ycoords))
-    w4 = np.stack((np.repeat(np.min(xcoords),gr),ycoords))
+    xcoords = np.linspace(np.min(center_x),np.max(center_x),xres,endpoint=False)
+    ycoords = np.linspace(np.min(center_y),np.max(center_y),yres,endpoint=False)
+    w1 = np.stack((xcoords,np.repeat(np.max(ycoords),xres)))
+    w3 = np.stack((xcoords,np.repeat(np.min(ycoords),xres)))
+    w2 = np.stack((np.repeat(np.max(xcoords),yres),ycoords))
+    w4 = np.stack((np.repeat(np.min(xcoords),yres),ycoords))
     
     all_walls = np.concatenate((w1,w2,w3,w4),axis=1)
     
-    wall_x = np.zeros((len(all_walls[0]),len(center_x)))
-    wall_y = np.zeros((len(all_walls[1]),len(center_y)))
+    wall_x = all_walls[0]
+    wall_y = all_walls[1]
+    
+    wall_dists = np.zeros((len(wall_x),len(center_x)))
+    wall_angles = np.zeros((len(wall_x),len(center_x)))
+
     
     for i in range(len(center_x)):
-        wall_x[:,i] = all_walls[0] - center_x[i]
-        wall_y[:,i] = all_walls[1] - center_y[i]
+        wall_dists[:,i] = np.sqrt((wall_x-center_x[i])**2 + (wall_y-center_y[i])**2)
+        wall_angles[:,i] = (np.rad2deg(np.arctan2(wall_y-center_y[i],wall_x-center_x[i]))%360 - angles[i])%360
+
         
-    wall_ego_angles = (np.rad2deg(np.arctan2(wall_y,wall_x))%360 - angles)%360
-    wall_ego_dists = np.sqrt(wall_x**2 + wall_y**2)
-    
-    ref_angles = np.linspace(0,360,60,endpoint=False)
-    radii = np.linspace(0,np.min((np.max(center_x)-np.min(center_x),np.max(center_y)-np.min(center_y)))/2.,20)
-    dist_bins = np.digitize(wall_ego_dists,radii) - 1
-    
-    map_vals = np.zeros((60,len(center_x)))
-    occ = np.zeros((60,20))
-    spikes = np.zeros((60,20))
-    cutoff = np.min((np.max(center_x)-np.min(center_x),np.max(center_y)-np.min(center_y)))/2.
-    
-    for i in range(len(center_x)):
-        for a in range(len(ref_angles)):
-            diffs = np.abs(wall_ego_angles[:,i] - ref_angles[a])
-            closest_pt = np.where(diffs==np.min(diffs))[0][0]
-            if wall_ego_dists[closest_pt,i] < cutoff:
-                map_vals[a,i] = dist_bins[closest_pt,i]
-                occ[a,dist_bins[closest_pt,i]] += 1./framerate
-                spikes[a,dist_bins[closest_pt,i]] += spike_train[i]
-            else:
-                map_vals[a,i] = 1000
+    return wall_x, wall_y, wall_dists, wall_angles
 
-    heatmap = spikes/occ
-    
-    ref_angles = np.deg2rad(ref_angles)
 
-    h_interp = heatmap.copy()
-    v_interp = heatmap.copy()
+def plot_mh_ego(ops,adv,trial_data,cluster_data,spike_data,self):
+
     
-    for i in range(len(heatmap)):
-        nans,x = np.isnan(h_interp[i]), lambda z: z.nonzero()[0]
-        try:
-            h_interp[i][nans]= np.interp(x(nans), x(~nans), h_interp[i][~nans])
-        except:
-            pass
+    for direction_variable in ['hd','md']:
+        #assign grid_res and hd_bins to shorter var for easier reading
+        gr = adv['grid_res']
+        framerate = adv['framerate']
+    
+        #grab appropriate data
+        center_x = np.asarray(trial_data['center_x'])
+        center_y = np.asarray(trial_data['center_y'])
+        if direction_variable == 'hd':
+            angles = np.asarray(trial_data['angles'])
+        else:
+            angles = np.array(trial_data['movement_directions'])
+    #    mds = np.asarray(trial_data['movement_directions'])
+        spike_train = np.asarray(spike_data['ani_spikes'])
+    #    from astropy.convolution.kernels import Gaussian1DKernel
+    #    angles = convolve(angles,Gaussian1DKernel(stddev=2))
         
-    for i in range(len(heatmap[0])):
-        nans,x = np.isnan(v_interp[:,i].flatten()), lambda z: z.nonzero()[0]
-        try:
-            v_interp[:,i][nans]= np.interp(ref_angles[x(nans)], ref_angles[x(~nans)], v_interp[:,i][~nans],period=2*np.pi)
-        except:
-            pass
+        speeds = np.asarray(trial_data['speeds'])
+        center_x = center_x[speeds>10]
+        center_y = center_y[speeds>10]
+        angles = angles[speeds>10]
+    #    mds = mds[speeds>10]
+        spike_train = spike_train[speeds>10]
+    
+        center_x -= np.min(center_x)
+        center_y -= np.min(center_y)
+        center_x -= (np.max(center_x) - np.min(center_x))/2
+        center_y -= (np.max(center_y) - np.min(center_y))/2
         
-    histm = (h_interp + v_interp)/2.
-    
-    hist3 = np.concatenate((histm,histm,histm),axis=0)
-    hist3 = convolve(hist3,Gaussian2DKernel(stddev=2))
-    new_hist = hist3[len(histm):len(histm)*2]
-
-    xvals,yvals = np.meshgrid(ref_angles,radii)
+        xcoords = np.linspace(np.min(center_x),np.max(center_x),gr,endpoint=False)
+        ycoords = np.linspace(np.min(center_y),np.max(center_y),gr,endpoint=False)
+        w1 = np.stack((xcoords,np.repeat(np.max(ycoords),gr)))
+        w3 = np.stack((xcoords,np.repeat(np.min(ycoords),gr)))
+        w2 = np.stack((np.repeat(np.max(xcoords),gr),ycoords))
+        w4 = np.stack((np.repeat(np.min(xcoords),gr),ycoords))
         
-    mr = np.nansum(heatmap.T*np.exp(1j*xvals))/np.nansum(heatmap)
-    mrl = np.abs(mr)
-    mra = np.rad2deg(np.arctan2(np.imag(mr),np.real(mr)))
-
-
-    egopath = cluster_data['new_folder']+'/egocentric'
-    import os
-    import matplotlib.pyplot as plt
-    if not os.path.isdir(egopath):
-        os.makedirs(egopath)
-    fig=plt.figure()
-    ax = fig.add_subplot(111,projection='polar')
-    ax.set_theta_zero_location("N")
-    ax.text(.1,.9,'MRL = %s' % mrl,transform=ax.transAxes)
-    ax.text(.1,.8,'MRA = %s' % mra,transform=ax.transAxes)
-
-    ax.pcolormesh(ref_angles,radii,new_hist.T,vmin=0)
-
-    fig.savefig('%s/Full Wall Map.png' % egopath,dpi=adv['pic_resolution'])
+        all_walls = np.concatenate((w1,w2,w3,w4),axis=1)
+        
+        wall_x = np.zeros((len(all_walls[0]),len(center_x)))
+        wall_y = np.zeros((len(all_walls[1]),len(center_y)))
+        
+        for i in range(len(center_x)):
+            wall_x[:,i] = all_walls[0] - center_x[i]
+            wall_y[:,i] = all_walls[1] - center_y[i]
+            
+        wall_ego_angles = (np.rad2deg(np.arctan2(wall_y,wall_x))%360 - angles)%360
+        wall_ego_dists = np.sqrt(wall_x**2 + wall_y**2)
+        
+        ref_angles = np.linspace(0,360,60,endpoint=False)
+        radii = np.linspace(0,np.min((np.max(center_x)-np.min(center_x),np.max(center_y)-np.min(center_y)))/2.,20)
+        dist_bins = np.digitize(wall_ego_dists,radii) - 1
+        
+        map_vals = np.zeros((60,len(center_x)))
+        occ = np.zeros((60,20))
+        spikes = np.zeros((60,20))
+        cutoff = np.min((np.max(center_x)-np.min(center_x),np.max(center_y)-np.min(center_y)))/2.
+        
+        for i in range(len(center_x)):
+            for a in range(len(ref_angles)):
+                diffs = np.abs(wall_ego_angles[:,i] - ref_angles[a])
+                closest_pt = np.where(diffs==np.min(diffs))[0][0]
+                if wall_ego_dists[closest_pt,i] < cutoff:
+                    map_vals[a,i] = dist_bins[closest_pt,i]
+                    occ[a,dist_bins[closest_pt,i]] += 1./framerate
+                    spikes[a,dist_bins[closest_pt,i]] += spike_train[i]
+#                else:
+#                    map_vals[a,i] = 1000
     
-    top_angle,top_dist = np.where(new_hist==np.max(new_hist))
+        heatmap = spikes/occ
+        
+        ref_angles = np.deg2rad(ref_angles)
     
-    fig=plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(new_hist[top_angle].flatten())
-    ax.set_ylim(0,1.2*np.max(new_hist[top_angle])+10)
-    fig.savefig('%s/top wall dists.png' % egopath,dpi=adv['pic_resolution'])
+        h_interp = heatmap.copy()
+        v_interp = heatmap.copy()
+        
+        for i in range(len(heatmap)):
+            nans,x = np.isnan(h_interp[i]), lambda z: z.nonzero()[0]
+            try:
+                h_interp[i][nans]= np.interp(x(nans), x(~nans), h_interp[i][~nans])
+            except:
+                pass
+            
+        for i in range(len(heatmap[0])):
+            nans,x = np.isnan(v_interp[:,i].flatten()), lambda z: z.nonzero()[0]
+            try:
+                v_interp[:,i][nans]= np.interp(ref_angles[x(nans)], ref_angles[x(~nans)], v_interp[:,i][~nans],period=2*np.pi)
+            except:
+                pass
+            
+        histm = (h_interp + v_interp)/2.
+        
+        hist3 = np.concatenate((histm,histm,histm),axis=0)
+        hist3 = convolve(hist3,Gaussian2DKernel(stddev=2))
+        new_hist = hist3[len(histm):len(histm)*2]
     
-    fig=plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(new_hist[:,top_dist].flatten())
-    ax.set_ylim(0,1.2*np.max(new_hist[:,top_dist])+10)
-    fig.savefig('%s/top wall angles.png' % egopath,dpi=adv['pic_resolution'])
+        xvals,yvals = np.meshgrid(ref_angles,radii)
+            
+        mr = np.nansum(new_hist.T*np.exp(1j*xvals))/(np.sum(new_hist))
+        mrl = np.abs(mr)
+        mra = np.rad2deg(np.arctan2(np.imag(mr),np.real(mr)))
+    
+    
+        egopath = cluster_data['new_folder']+'/egocentric'
+        import os
+        import matplotlib.pyplot as plt
+        if not os.path.isdir(egopath):
+            os.makedirs(egopath)
+        fig=plt.figure()
+        ax = fig.add_subplot(111,projection='polar')
+        ax.set_theta_zero_location("N")
+        ax.text(.1,.9,'MRL = %s' % mrl,transform=ax.transAxes)
+        ax.text(.1,.8,'MRA = %s' % mra,transform=ax.transAxes)
+    
+        ax.pcolormesh(ref_angles,radii,new_hist.T,vmin=0)
+    
+        if direction_variable == 'hd':
+            fig.savefig('%s/Full Wall Map.png' % egopath,dpi=adv['pic_resolution'])
+        else:
+            fig.savefig('%s/Full Wall Map_md.png' % egopath,dpi=adv['pic_resolution'])
+
+        
+        top_angle,top_dist = np.where(new_hist==np.max(new_hist))
+        
+        if direction_variable == 'hd':
+        
+            fig=plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(new_hist[top_angle].flatten())
+            ax.set_ylim(0,1.2*np.max(new_hist[top_angle])+10)
+            fig.savefig('%s/top wall dists.png' % egopath,dpi=adv['pic_resolution'])
+            
+            fig=plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(new_hist[:,top_dist].flatten())
+            ax.set_ylim(0,1.2*np.max(new_hist[:,top_dist])+10)
+            fig.savefig('%s/top wall angles.png' % egopath,dpi=adv['pic_resolution'])
+            
+        elif direction_variable == 'md':
+        
+            fig=plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(new_hist[top_angle].flatten())
+            ax.set_ylim(0,1.2*np.max(new_hist[top_angle])+10)
+            fig.savefig('%s/top wall dists_md.png' % egopath,dpi=adv['pic_resolution'])
+            
+            fig=plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(new_hist[:,top_dist].flatten())
+            ax.set_ylim(0,1.2*np.max(new_hist[:,top_dist])+10)
+            fig.savefig('%s/top wall angles_md.png' % egopath,dpi=adv['pic_resolution'])
+            
+            
+        wall_x, wall_y, wall_dists, wall_angles = calc_wall_dists(center_x,center_y,angles,30,30)
+        
+        top_dists = top_dist - wall_dists
+        top_angles = (top_angle - wall_angles)%360
+        
+        top_dists[top_dists>50] = 70
+        
+#        np.sqrt(wall_dists**2 + top_dist**2 - 2. * wall_dists * top_dist * np.cos(np.deg2rad(top_angle) - np.deg2rad(wall_angles)))
+        
+            
+        wd_bins = np.digitize(top_dists,np.linspace(np.min(top_dists),np.max(top_dists),40,endpoint=False))-1
+        wd_bins[top_dists==70] = -1
+        wa_bins = np.digitize(top_angles,np.linspace(0,360,60,endpoint=False))-1
+        
+        spikes = np.zeros((60,40))
+        occ = np.zeros((60,40))
+        for i in range(len(spike_train)):
+            spikes[wa_bins[:,i][wd_bins[:,i]>=0],wd_bins[:,i][wd_bins[:,i]>=0]] += spike_train[i]
+            occ[wa_bins[:,i][wd_bins[:,i]>=0],wd_bins[:,i][wd_bins[:,i]>=0]] += 1./30.
+            
+        hmap = spikes/occ
+        
+        plt.imshow(hmap)
+
+
 
 
 def plot_wall_ego(ops,adv,trial_data,cluster_data,spike_data,self):
@@ -1890,6 +2102,183 @@ def plot_wall_ego(ops,adv,trial_data,cluster_data,spike_data,self):
     
     return cluster_data
 
+
+def plot_boundary_field(ops,adv,trial_data,cluster_data,spike_data,self):
+    
+    #assign grid_res and hd_bins to shorter var for easier reading
+    gr = adv['grid_res']
+    hd_bins = adv['hd_bins']
+    framerate = adv['framerate']
+    
+    #grab appropriate data
+    center_x = np.asarray(trial_data['center_x'])
+    center_y = np.asarray(trial_data['center_y'])
+    angles = np.asarray(trial_data['angles'])
+    ani_spikes = np.asarray(spike_data['ani_spikes'])
+    
+    center_x -= np.min(center_x)
+    center_y -= np.min(center_y)
+    center_x -= (np.max(center_x) - np.min(center_x))/2
+    center_y -= (np.max(center_y) - np.min(center_y))/2
+    
+    x_pos = center_x > 0
+    y_pos = center_y > 0
+    
+    x_walls = np.zeros(len(center_x))
+    x_walls[x_pos] = np.max(center_x)+1
+    x_walls[~x_pos] = np.min(center_x)-1
+    
+    y_walls = np.zeros(len(center_y))
+    y_walls[y_pos] = np.max(center_y)+1
+    y_walls[~y_pos] = np.min(center_y)-1
+    
+    x_dists = np.abs(x_walls) - np.abs(center_x)
+    y_dists = np.abs(y_walls) - np.abs(center_y)
+    
+    y_points = np.zeros(len(center_x))
+    x_points = np.zeros(len(center_y))
+    
+    y_log_weights = 1. - np.log(y_dists)/(np.log(y_dists) + np.log(x_dists))
+    x_log_weights = 1. - np.log(x_dists)/(np.log(y_dists) + np.log(x_dists))
+    
+    y_weights = 1. - y_dists/(y_dists + x_dists)
+    x_weights = 1. - x_dists/(y_dists + x_dists)
+    
+#    y_points = y_walls*y_weights + center_y*x_weights
+#    x_points = x_walls*x_weights + center_x*y_weights
+    
+    y_points = y_walls*y_log_weights + center_y*x_log_weights
+    x_points = x_walls*x_log_weights + center_x*y_log_weights
+    
+    dists = y_dists * y_log_weights + x_dists * x_log_weights
+    
+#    dists = np.sqrt((center_x-x_points)**2 + (center_y-y_points)**2)
+    wall_angles = (np.rad2deg(np.arctan2(y_points-center_y,x_points-center_x)))%360
+    wall_angles = (wall_angles-angles)%360
+#    center_ego_mds = (center_ego_angles - np.asarray(trial_data['movement_directions']))
+    
+    dist_bins = np.digitize(dists,np.linspace(0,np.max(dists),20,endpoint=False))-1
+    wall_ego_bins = np.digitize(wall_angles,np.linspace(0,360,hd_bins,endpoint=False))-1
+    
+    wall_dist_spikes = np.zeros(20)
+    wall_dist_occ = np.zeros(20)
+    wall_ego_spikes = np.zeros(hd_bins)
+    wall_ego_occ = np.zeros(hd_bins)
+    
+    for i in range(len(center_x)):
+        wall_dist_spikes[dist_bins[i]] += ani_spikes[i]
+        wall_dist_occ[dist_bins[i]] += 1./framerate
+        wall_ego_spikes[wall_ego_bins[i]] += ani_spikes[i]
+        wall_ego_occ[wall_ego_bins[i]] += 1./framerate
+        
+    ego_curve = wall_ego_spikes/wall_ego_occ
+    dist_curve = wall_dist_spikes/wall_dist_occ
+    
+    
+    trial_data['boundary_field_angles'] = wall_angles
+    
+    rayleigh, mean_angle = rayleigh_r(np.arange(6,366,360/hd_bins),ego_curve)
+    
+    cluster_data['boundary_field_curve'] = ego_curve
+    cluster_data['boundary_field_rayleigh'] = rayleigh
+    cluster_data['boundary_field_mean_angle'] = mean_angle
+    import matplotlib.pyplot as plt
+    fig=plt.figure()
+    ax = fig.add_subplot(111)
+    fig.subplots_adjust(hspace=.20, wspace=0.20, bottom=0.18, left=0.11, top=.80, right=0.93)
+    #set y limit according to highest firing rate
+    ymax = int(1.5*max(ego_curve))+10
+    ax.set_xlim([0,360])
+    ax.set_ylim([0,ymax])
+    ax.set_xlabel('boundary field bearing (degrees)')
+    ax.set_ylabel('firing rate (hz)')
+    ax.set_xticks(range(0,361,45))
+    #print rayleigh r, rayleigh pfd, fit pfd values on graph
+    ax.text(.1,.9,'rayleigh r = %s' % rayleigh,transform=ax.transAxes)
+    ax.text(.1,.8,'rayleigh angle = %s' % mean_angle,transform=ax.transAxes)
+    ax.plot(np.linspace(0,360,hd_bins),ego_curve,'k-') #,cluster_data['hd_angles'][cluster_data['hd_rates'].index(max(cluster_data['hd_rates']))],max(cluster_data['hd_rates']),'r*',cluster_data['hd_angles'],cluster_data['gauss_rates'],'r--')
+
+    egopath = cluster_data['new_folder']+'/egocentric'
+
+    fig.savefig('%s/boundary field bearing plot.png' % egopath,dpi=adv['pic_resolution'])
+    
+    
+    xvals = np.linspace(np.min(dists),np.max(dists),20)
+    
+    slope, intercept, r_value,p_value,std_err = linregress(xvals,dist_curve)
+    fit_y = []
+    for i in range(len(xvals)):
+        fit_y.append(slope*xvals[i] + intercept)
+
+    cluster_data['boundary_field_dist_curve'] = dist_curve
+    cluster_data['boundary_field_dist_xvals'] = xvals
+    cluster_data['boundary_field_dist_fit'] = fit_y
+    cluster_data['boundary_field_dist_r'] = r_value
+    cluster_data['boundary_field_dist_p'] = p_value
+    
+    fig.clf()
+    ax = fig.add_subplot(111)  
+    fig.tight_layout(pad=2.5)
+    ymax = int(1.2*np.nanmax(dist_curve))+10
+    xmax = np.nanmax(xvals)
+    ax.set_ylim([0,ymax])
+    ax.set_xlim([0,xmax])
+    ax.set_xlabel('distance (pixels)')
+    ax.set_ylabel('firing rate (hz)')
+
+    ax.plot(xvals,dist_curve,'k-',xvals,fit_y,'b-')
+    ax.text(.1,.9,'fit r^2 = %s' % r_value**2,transform=ax.transAxes)
+    ax.text(.1,.8,'fit p = %s' % p_value,transform=ax.transAxes)
+    
+    egopath = cluster_data['new_folder']+'/egocentric'
+    
+    fig.savefig('%s/boundary field distance.png' % egopath,dpi=adv['pic_resolution'])
+    
+    
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    from matplotlib import colors as mplcolors
+    
+    fig.clf()
+    axis_range = np.max([np.max(trial_data['center_x'])-np.min(trial_data['center_x']),np.max(trial_data['center_y'])-np.min(trial_data['center_y'])])
+    min_y = np.mean([np.max(trial_data['center_y']),np.min(trial_data['center_y'])]) - axis_range/2.
+    max_y = np.mean([np.max(trial_data['center_y']),np.min(trial_data['center_y'])]) + axis_range/2.
+    min_x = np.mean([np.max(trial_data['center_x']),np.min(trial_data['center_x'])]) - axis_range/2.
+    max_x = np.mean([np.max(trial_data['center_x']),np.min(trial_data['center_x'])]) + axis_range/2.
+
+    #create the color map for the plot according to the range of possible angles
+    colormap = plt.get_cmap('hsv')
+    norm = mplcolors.Normalize(vmin=0, vmax=360)
+    
+    fig=plt.figure()
+    #make the figure
+    ax = fig.add_subplot(111)
+#    fig.tight_layout(pad=2.5)
+    
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    
+    #axes set to min and max x and y values in dataset
+    ax.set_ylim([min_y,max_y])
+    ax.set_xlim([min_x,max_x])
+    
+    spike_angles = []
+    for i in range(len(wall_angles)):
+        for j in range(ani_spikes[i]):
+            spike_angles.append(wall_angles[i])
+
+    #make a scatter plot of spike locations colored by head direction
+    im=ax.scatter(spike_data['spike_x'],spike_data['spike_y'],c=spike_angles,cmap=colormap,norm=norm)
+    cbar = fig.colorbar(im, cax=cax, orientation='vertical')
+    cbar.set_ticks([0,90,180,270,360])
+    
+#    plt.axis('equal')
+    
+    egopath = cluster_data['new_folder']+'/egocentric'
+        
+    fig.savefig('%s/boundary field hd map.png' % egopath,dpi=adv['pic_resolution'])
+
+    
+
 def plot_ego(ops,adv,trial_data,cluster_data,spike_data,self,ego=False,weighted=False,view=False):
 
     #assign grid_res and hd_bins to shorter var for easier reading
@@ -1977,8 +2366,8 @@ def plot_ego(ops,adv,trial_data,cluster_data,spike_data,self,ego=False,weighted=
         #assign coordinates for x and y axes for each bin
         #(x counts up, y counts down)
         for x in range(gr):
-            xcoords[x] = (np.float(x)/np.float(gr))*np.float(np.max(center_x)-np.min(center_x)) + np.float(np.min(center_x))
-            ycoords[x] = np.float(np.max(center_y)) - (np.float(x)/np.float(gr))*np.float((np.max(center_y)-np.min(center_y)))
+            xcoords[x] = (np.float(x)/np.float(gr))*np.float(np.max(center_x)-np.min(center_x)) + np.float(np.min(center_x)) + np.float(np.max(center_x)-np.min(center_x))/np.float(gr)
+            ycoords[x] = np.float(np.max(center_y)) - (np.float(x)/np.float(gr))*np.float((np.max(center_y)-np.min(center_y))) - np.float(np.max(center_y)-np.min(center_y))/np.float(gr)
 
         if ego:
             

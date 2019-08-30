@@ -66,20 +66,35 @@ def plot_hd(ops,adv,trial_data,cluster_data,spike_data,self):
             fig.savefig('%s/Head Direction PolarPlot.png' % cluster_data['new_folder'],dpi=adv['pic_resolution'])
      
         
-    md_bins = np.digitize(trial_data['movement_directions'],np.linspace(0,360,adv['hd_bins'],endpoint=False)) - 1
     spikes = np.zeros(adv['hd_bins'])
     occ = np.zeros(adv['hd_bins'])
     
-    for i in range(len(spike_data['ani_spikes'])):
-        spikes[md_bins[i]] += spike_data['ani_spikes'][i]
+    speeds = np.array(trial_data['speeds'])
+    
+    mds = trial_data['movement_directions'][speeds>10]
+    md_spikes = np.array(spike_data['ani_spikes'])[speeds>10]
+    
+    md_bins = np.digitize(mds,np.linspace(0,360,adv['hd_bins'],endpoint=False)) - 1
+    
+    for i in range(len(md_bins)):
+        spikes[md_bins[i]] += md_spikes[i]
         occ[md_bins[i]] += 1./adv['framerate']
         
     curve = spikes/occ
+    
+    mr = np.nansum(curve*np.exp(1j*np.deg2rad(np.linspace(0,360,adv['hd_bins'],endpoint=False))))/(np.nansum(curve))
+    mrl = np.abs(mr)
+    mra = np.rad2deg(np.arctan2(np.imag(mr),np.real(mr)))
         
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    ymax = int(1.5*np.nanmax(curve))+10
+    ax.set_xlim([0,360])
+    ax.set_ylim([0,ymax])
     angles = np.linspace(0,360,adv['hd_bins'],endpoint=False)
     ax.set_xticks(np.arange(0,360,90))
+    ax.text(.1,.9,'rayleigh r = %s' % mrl,transform=ax.transAxes)
+    ax.text(.1,.8,'rayleigh angle = %s' % mra,transform=ax.transAxes)
     ax.plot(angles,curve,'k-',linewidth=3)
     
     if ops['save_all']:

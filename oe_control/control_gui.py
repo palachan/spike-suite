@@ -20,16 +20,22 @@ import xml.etree.ElementTree as et
 
 import video
 
-sys.path.append('C:/Users/Jeffrey_Taube/Desktop/Analysis/spike-suite/')
-import kilosort_control.sort_gui
+#sys.path.append('C:/Users/Jeffrey_Taube/Desktop/Analysis/spike-suite/')
+#import kilosort_control.sort_gui
 
 from PySide.QtCore import (QProcess,QRect,Qt,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
 from PySide.QtGui import (QApplication, QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QImage,
                           QAction, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,QTextCursor, QComboBox,
                           QTextEdit, QMenuBar, QMenu, QStatusBar, QStyle, QPushButton, QFileDialog, QDesktopWidget,QPixmap)
 
-#import main
-#import plot
+
+""""""""""""""""""
+open_ephys_path = 'C:/Users/Jeffrey_Taube/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/open-ephys.exe'
+config_path =  'C:/Users/Jeffrey_Taube/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin'
+default_config = config_path + '/lastConfig.xml'
+data_save_dir = 'C:/Users/Jeffrey_Taube/Desktop/'
+
+""""""""""""""""""
 
 #class for catching standard output and standard error
 class outputStream(QObject):
@@ -126,7 +132,7 @@ class MainWindow(QMainWindow):
             QTimer.singleShot(500.,loop.quit)
             loop.exec_()
         
-        subprocess.Popen('start C:/Users/Jeffrey_Taube/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/open-ephys.exe',
+        subprocess.Popen('start %s' % open_ephys_path,
                                shell=True)
         
         self.collect_frame.connect(self.update_frame)
@@ -218,9 +224,9 @@ class MainWindow(QMainWindow):
         iconToolBar.addAction(self.action_Record)
         iconToolBar.addAction(action_Stop)
         
-        self.sort_button = QPushButton('Sort Now',self)
-        self.sort_button.setGeometry(QRect(self.window_width*.85,0,self.window_width*.15,self.window_height*.05))
-        self.sort_button.clicked.connect(self.sort_now)
+#        self.sort_button = QPushButton('Sort Now',self)
+#        self.sort_button.setGeometry(QRect(self.window_width*.85,0,self.window_width*.15,self.window_height*.05))
+#        self.sort_button.clicked.connect(self.sort_now)
                 
         #show the window if minimized by windows
         self.showMinimized()
@@ -483,27 +489,27 @@ class MainWindow(QMainWindow):
         elif not self.overlay:
             self.overlay = True
             
-    def sort_now(self):
-        
-        if self.recdir is not None:
-            os.chdir('./kilosort_control')
-            #create and show the main window
-            self.sort_frame = kilosort_control.sort_gui.MainWindow()
-            self.sort_frame.show()
-        
-            #set up stream for stdout and stderr based on outputStream class
-            self.outputStream = kilosort_control.sort_gui.outputStream()
-            #when outputStream sends messages, connect to appropriate function for
-            #writing to terminal window
-            self.outputStream.message.connect(self.sort_frame.print_message)
-    
-            #connect stdout and stderr to outputStream
-            sys.stdout = self.outputStream
-            sys.stderr = self.outputStream
-            
-            self.sort_frame.run_now(self.recdir)
-            
-            self.close()
+#    def sort_now(self):
+#        
+#        if self.recdir is not None:
+#            os.chdir('./kilosort_control')
+#            #create and show the main window
+#            self.sort_frame = kilosort_control.sort_gui.MainWindow()
+#            self.sort_frame.show()
+#        
+#            #set up stream for stdout and stderr based on outputStream class
+#            self.outputStream = kilosort_control.sort_gui.outputStream()
+#            #when outputStream sends messages, connect to appropriate function for
+#            #writing to terminal window
+#            self.outputStream.message.connect(self.sort_frame.print_message)
+#    
+#            #connect stdout and stderr to outputStream
+#            sys.stdout = self.outputStream
+#            sys.stderr = self.outputStream
+#            
+#            self.sort_frame.run_now(self.recdir)
+#            
+#            self.close()
             
     def get_info(self):
         
@@ -576,7 +582,7 @@ class MainWindow(QMainWindow):
             current_session_number = str(session_number.toPlainText())
             current_session_type = str(session_type.currentText())
             
-            recdir = 'C:/Users/Jeffrey_Taube/Desktop/' + current_whose_animal + '/' + current_animal_number
+            recdir = data_save_dir + current_whose_animal + '/' + current_animal_number
             
             if not os.path.exists(recdir):
                 os.makedirs(recdir)
@@ -590,8 +596,7 @@ class MainWindow(QMainWindow):
             
             self.experiment_info = self.experiment_info.encode()
             
-            default_config = 'C:/Users/Jeffrey_Taube/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/lastConfig.xml'
-            config_file = 'C:/Users/Jeffrey_Taube/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/' + current_animal_number + '.xml'
+            config_file = config_path + '/' + current_animal_number + '.xml'
                 
             if not os.path.exists(config_file):
                 shutil.copy(default_config,config_file)

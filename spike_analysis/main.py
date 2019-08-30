@@ -76,7 +76,7 @@ def Run(fname,self):
             else:
                 #get tracking information (positions, angles) for trial
                 trial_data = tracking_stuff(ops,adv,fdir,trial,self)
-                if '1.2m' in trial:
+                if '1.2m' in os.path.basename(trial):
                     center_x = np.array(trial_data['center_x'])
                     center_y = np.array(trial_data['center_y'])
                     center_x = center_x - np.min(center_x)
@@ -85,6 +85,48 @@ def Run(fname,self):
                     center_y = center_y * 120./np.max(center_y)
                     trial_data['center_x'] = center_x.tolist()
                     trial_data['center_y'] = center_y.tolist()
+                    
+                elif '1m' in trial and 'rot' not in os.path.basename(trial):
+                    center_x = np.array(trial_data['center_x'])
+                    center_y = np.array(trial_data['center_y'])
+                    center_x = center_x - np.min(center_x)
+                    center_x = center_x * 100./np.max(center_x)
+                    center_y = center_y - np.min(center_y)
+                    center_y = center_y * 100./np.max(center_y)
+                    trial_data['center_x'] = center_x.tolist()
+                    trial_data['center_y'] = center_y.tolist()
+                    
+                elif '1m' in trial and 'rot' in os.path.basename(trial):
+                    center_x = np.array(trial_data['center_x'])
+                    center_y = np.array(trial_data['center_y'])
+                    center_x = center_x - np.min(center_x)
+                    center_x = center_x * 100.*np.sqrt(2.)/np.max(center_x)
+                    center_y = center_y - np.min(center_y)
+                    center_y = center_y * 100.*np.sqrt(2.)/np.max(center_y)
+                    trial_data['center_x'] = center_x.tolist()
+                    trial_data['center_y'] = center_y.tolist()
+                    
+                elif '.6m' in os.path.basename(trial):
+                    center_x = np.array(trial_data['center_x'])
+                    center_y = np.array(trial_data['center_y'])
+                    center_x = center_x - np.min(center_x)
+                    center_x = center_x * 60./np.max(center_x)
+                    center_y = center_y - np.min(center_y)
+                    center_y = center_y * 60./np.max(center_y)
+                    trial_data['center_x'] = center_x.tolist()
+                    trial_data['center_y'] = center_y.tolist()
+                    
+                elif 'rect' in os.path.basename(trial):
+                    center_x = np.array(trial_data['center_x'])
+                    center_y = np.array(trial_data['center_y'])
+                    center_x = center_x - np.min(center_x)
+                    center_x = center_x * 120./np.max(center_x)
+                    center_y = center_y - np.min(center_y)
+                    center_y = center_y * 60./np.max(center_y)
+                    trial_data['center_x'] = center_x.tolist()
+                    trial_data['center_y'] = center_y.tolist()
+                    
+
                     
                     
                 #calculate speed and ahv data if specified in ops

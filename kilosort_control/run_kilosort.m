@@ -16,12 +16,12 @@ function [mean] = run_kilosort(fpath,bin_file,fs,n_trodes,trodetype)
     end
 
     master_file = 'C:\Users\Jeffrey_Taube\Desktop\Analysis\Kilosort\Patrick_run\master_script.m';
-
-    try
-        run(master_file);
-    catch
-        exit;
-    end
+    run(master_file);
+%     try
+%         run(master_file);
+%     catch
+%         exit;
+%     end
     
     mean = 1;
     

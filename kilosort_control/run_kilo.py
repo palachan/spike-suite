@@ -294,7 +294,10 @@ if __name__ == '__main__':
 #    fdir = 'H:/Patrick/egocentric/PL62/MEC'
 #    fdir = '//tsclient/C/Users/Jeffrey Taube/Desktop/Patrick/PL68/2019-4-22 try 2'
 
-    fdir = 'G:/Patrick cube/KP4'
+    fdir = 'G:/Patrick cube/JLM17'
+#    fdir = 'G:/Patrick cube/NB11 CHECK EXCLUDED/Ambiguous -- iso poor'
+    fdir = 'G:/Patrick cube/JRD54 CHECK EXCLUDED/Excluded Sessions 30hz'
+#    fdir = 'D:/Patrick/PL73'
     
 #    for animal in os.listdir(fdir):
 #        animaldir = fdir + '/' + animal
@@ -317,13 +320,24 @@ if __name__ == '__main__':
     trials = []
     for underdir in os.listdir(fdir):
         trialdir = fdir + '/' + underdir
+        if not os.path.isdir(trialdir):
+            continue
 #        print trialdir
         count = 0
         for fname in os.listdir(trialdir):
-            if fname.startswith('ST') & fname.endswith('.nst') & trialdir.endswith('no kilo'):# ~os.path.isdir(trialdir + '/kilofiles'):
+            if fname.startswith('ST') & fname.endswith('.nst'): # & trialdir.endswith('no kilo'):# ~os.path.isdir(trialdir + '/kilofiles'):
                 count += 1
                 
         if count == 8:
+            trials.append(trialdir)
+            
+            
+        count= 0
+        for fname in os.listdir(trialdir):
+            if fname.startswith('TT') & fname.endswith('.ntt'): # & trialdir.endswith('no kilo'):# ~os.path.isdir(trialdir + '/kilofiles'):
+                count += 1
+                
+        if count == 4:
             trials.append(trialdir)
         
     #for every session...
