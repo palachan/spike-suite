@@ -15,10 +15,12 @@ import spike_analysis.gui
 import kilosort_control.sort_gui
 
 #import GUI objects/Widgets
-from PySide.QtCore import QRect,Qt
-from PySide.QtGui import (QApplication, QMainWindow, QFrame, QLabel, QKeySequence, QSizePolicy,
-                          QVBoxLayout, QHBoxLayout, QGridLayout, QShortcut, QWidget, QLineEdit,
-                          QMenuBar, QMenu, QPushButton, QFileDialog, QDesktopWidget, QComboBox)
+from PySide6.QtCore import QRect
+
+from PySide6.QtWidgets import (QApplication, QMainWindow, QFrame, QSizePolicy,
+                          QVBoxLayout, QMenuBar, QPushButton)
+
+from PySide6.QtGui import QGuiApplication
 
 #make sure we're using the right qt API
 os.environ['QT_API'] = 'pyside'
@@ -42,9 +44,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('SpikeSuite')
         
         #get screen dimensions
-        self.screen_height = QDesktopWidget().screenGeometry().height()
-        self.screen_width = QDesktopWidget().screenGeometry().width()
-
+        self.screen_height = QGuiApplication.primaryScreen().availableGeometry().height()
+        self.screen_width = QGuiApplication.primaryScreen().availableGeometry().width()
+        
         self.make_buttons()
 
         #create a QMenuBar and set geometry
@@ -64,17 +66,14 @@ class MainWindow(QMainWindow):
         self.acquire_button = QPushButton('Acquire',buttons)
         self.sort_button = QPushButton('Sort',buttons)
         self.analyze_button = QPushButton('Analyze',buttons)
-#        self.classify_button = QPushButton('Classify')
         
         self.acquire_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.sort_button.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Expanding)
         self.analyze_button.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Expanding)
-#        self.classify_button.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Expanding)
 
         self.acquire_button.setStyleSheet('background-color: darkRed')
         self.sort_button.setStyleSheet('background-color: darkBlue')
         self.analyze_button.setStyleSheet('background-color: darkGreen')
-#        self.classify_button.setStyleSheet('background-color: orange')
         
         self.analyze_button.clicked.connect(self.run_analysis)
         self.acquire_button.clicked.connect(self.run_acq)
@@ -87,11 +86,9 @@ class MainWindow(QMainWindow):
         buttons_layout.addWidget(self.acquire_button)
         buttons_layout.addWidget(self.sort_button)
         buttons_layout.addWidget(self.analyze_button)
-#        buttons_layout.addWidget(self.classify_button)
         
         buttons.setLayout(buttons_layout)
         self.setCentralWidget(buttons)
-#        
         
     def run_analysis(self):        
         os.chdir('./spike_analysis')
@@ -155,7 +152,7 @@ if __name__ == '__main__':
     #create a QApplication if one doesn't already exist
     app = QApplication.instance()
     if app == None:
-        app = QApplication(['/Users/Patrick/anaconda/lib/python2.7/site-packages/spyderlib/widgets/externalshell/start_ipython_kernel.py'])
+        app = QApplication([])
     
     #create and show the main window
     frame = MainWindow()

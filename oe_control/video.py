@@ -22,12 +22,14 @@ def run_video_acq(self,sock):
     #set resolution to 720p
     vc.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
     vc.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
-    #set focus to 0 so it doesn't autofocus
+#    #set focus to 0 so it doesn't autofocus
     vc.set(cv2.CAP_PROP_FOCUS, 0)
-    #set the exposure low so we only pick up leds
-    vc.set(cv2.CAP_PROP_EXPOSURE, -9)
+#    #set the exposure low so we only pick up leds
+#    vc.set(cv2.CAP_PROP_EXPOSURE, -9)
     #set the framerate to 30
     vc.set(cv2.CAP_PROP_FPS, 30)
+    
+    vc.set(cv2.CAP_PROP_CONVERT_RGB,0)
     
     #if everything is working, collect the first frame
     if vc.isOpened():
@@ -99,7 +101,7 @@ def run_video_acq(self,sock):
 #            #resize the frame to a usable size
             resized_frame = cv2.resize(resized_frame, (540,360))
             #switch to rgb for showing in gui
-            show_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
+            show_frame = resized_frame # cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
             #change to a different format?
             
             image = qimage2ndarray.array2qimage(show_frame)

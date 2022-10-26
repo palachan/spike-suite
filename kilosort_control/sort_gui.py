@@ -10,15 +10,15 @@ os.environ['QT_API'] = 'pyside'
 import sys
 import pickle
 
-import run_kilo
+from kilosort_control import run_kilo
 
-from PySide.QtCore import (QProcess,QRect,Qt,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
-from PySide.QtGui import (QApplication, QButtonGroup,QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QImage, QScrollArea,
-                          QAction, QWidget, QLayout, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout,QTextCursor, QComboBox,
-                          QTextEdit, QSizePolicy, QMenuBar, QMenu, QStatusBar, QStyle, QPushButton, QFileDialog, QDesktopWidget,QPixmap)
+from PySide6.QtCore import (QRect,Qt,QObject,Signal,Slot,QThread)
+from PySide6.QtWidgets import (QApplication, QButtonGroup,QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QScrollArea,
+                          QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout, QComboBox,
+                          QTextEdit, QMenuBar, QStatusBar, QPushButton, QFileDialog)
 
-#import main
-#import plot
+from PySide6.QtGui import QTextCursor
+
 
 #class for catching standard output and standard error 
 class outputStream(QObject):
@@ -46,6 +46,11 @@ class Worker(QObject):
         #start a process
         self.isrunning = True
         run_kilo.run(self.gui,fname,config_ops,acq)
+        
+    def run_kilo_batch(self,fname,config_ops,acq):
+        #start a process
+        self.isrunning = True
+        run_kilo.batch_run(self.gui,fname,config_ops,acq)
 
 #class for MainWindow instance
 class MainWindow(QMainWindow):
@@ -75,13 +80,18 @@ class MainWindow(QMainWindow):
         
         self.all_button = QPushButton(self)
         self.all_button.setText('All Trodes')
-        self.all_button.setGeometry(QRect(self.window_width*.1,self.window_height*.82,self.window_width*.35,self.window_height*.1))
+        self.all_button.setGeometry(QRect(self.window_width*.075,self.window_height*.82,self.window_width*.25,self.window_height*.1))
         self.all_button.clicked.connect(lambda: self.run('all'))
         
         self.single_button = QPushButton(self)
         self.single_button.setText('Single Trode')
-        self.single_button.setGeometry(QRect(self.window_width*.55,self.window_height*.82,self.window_width*.35,self.window_height*.1))
+        self.single_button.setGeometry(QRect(self.window_width*.375,self.window_height*.82,self.window_width*.25,self.window_height*.1))
         self.single_button.clicked.connect(lambda: self.run('single'))
+        
+        self.batch_button = QPushButton(self)
+        self.batch_button.setText('Batch')
+        self.batch_button.setGeometry(QRect(self.window_width*.675,self.window_height*.82,self.window_width*.25,self.window_height*.1))
+        self.batch_button.clicked.connect(lambda: self.run('batch'))
                 
         
         """""""""""""""""""""""""""""""""""""""""""""
@@ -175,7 +185,10 @@ class MainWindow(QMainWindow):
         except:
             pass
         
-        self.start.connect(self.worker.run_kilo)
+        if button != 'batch':
+            self.start.connect(self.worker.run_kilo)
+        else:
+            self.start.connect(self.worker.run_kilo_batch)
         self.start.emit(fname,config_ops,acq)
 
     def run_now(self,fname):

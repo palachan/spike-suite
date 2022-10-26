@@ -30,10 +30,10 @@ from PySide.QtGui import (QApplication, QMainWindow, QFrame, QLabel, QCheckBox, 
 
 
 """"""""""""""""""
-open_ephys_path = 'C:/Users/Jeffrey_Taube/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/open-ephys.exe'
-config_path =  'C:/Users/Jeffrey_Taube/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin'
+open_ephys_path = 'C:/Users/admin/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/open-ephys.exe'
+config_path =  'C:/Users/admin/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin'
 default_config = config_path + '/lastConfig.xml'
-data_save_dir = 'C:/Users/Jeffrey_Taube/Desktop/'
+data_save_dir = 'C:/Users/admin/Desktop/'
 
 """"""""""""""""""
 

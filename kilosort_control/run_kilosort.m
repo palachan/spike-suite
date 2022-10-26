@@ -1,6 +1,8 @@
 function [mean] = run_kilosort(fpath,bin_file,fs,n_trodes,trodetype)
 
-    if n_trodes == 8 && strcmp(trodetype,'tetrode')
+    if n_trodes == 16 && strcmp(trodetype,'tetrode')
+        tt16ChannelMap(strcat(fpath,'\kilofiles\'),fs);
+    elseif n_trodes == 8 && strcmp(trodetype,'tetrode')
         tt8ChannelMap(strcat(fpath,'\kilofiles\'),fs);
     elseif n_trodes == 4 && strcmp(trodetype,'tetrode')
         tt4ChannelMap(strcat(fpath,'\kilofiles\'),fs);
@@ -15,7 +17,7 @@ function [mean] = run_kilosort(fpath,bin_file,fs,n_trodes,trodetype)
         st1ChannelMap(strcat(fpath,'\kilofiles\'),fs);
     end
 
-    master_file = 'C:\Users\Jeffrey_Taube\Desktop\Analysis\Kilosort\Patrick_run\master_script.m';
+    master_file = 'C:\Users\plachanc\Desktop\Analysis\Kilosort\Patrick_run\master_script.m';
     run(master_file);
 %     try
 %         run(master_file);
