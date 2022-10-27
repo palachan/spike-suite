@@ -17,16 +17,15 @@ function [mean] = run_kilosort(fpath,bin_file,fs,n_trodes,trodetype)
         st1ChannelMap(strcat(fpath,'\kilofiles\'),fs);
     end
 
-    master_file = 'C:\Users\plachanc\Desktop\Analysis\Kilosort\Patrick_run\master_script.m';
+    master_file = '.\Kilosort\Patrick_run\master_script.m';
+
+    addpath(genpath('.\KiloSort')); % path to kilosort folder
+    addpath(genpath('.\npy-matlab')); % path to npy-matlab scripts
+
     run(master_file);
-%     try
-%         run(master_file);
-%     catch
-%         exit;
-%     end
     
-    mean = 1;
-    
+    mean = 1
+
     exit;
     
 end

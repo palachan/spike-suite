@@ -9,7 +9,7 @@ script for running the main gui
 
 import os
 #os.chdir('./spike_analysis')
-os.environ['QT_API'] = 'pyside'
+os.environ['QT_API'] = 'pyside2'
 import sys
 import pickle
 import time

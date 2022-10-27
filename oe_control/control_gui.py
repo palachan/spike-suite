@@ -5,7 +5,7 @@ Created on Sat Dec 02 11:46:57 2017
 @author: Patrick
 """
 import os
-os.environ['QT_API'] = 'pyside'
+os.environ['QT_API'] = 'pyside2'
 
 import sys
 import zmq
@@ -20,20 +20,21 @@ import xml.etree.ElementTree as et
 
 import video
 
-#sys.path.append('C:/Users/Jeffrey_Taube/Desktop/Analysis/spike-suite/')
-#import kilosort_control.sort_gui
+from PySide2.QtCore import (QProcess,QRect,Qt,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
+from PySide2.QtWidgets import (QApplication, QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, 
+                          QAction, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QComboBox,
+                          QTextEdit, QMenuBar, QMenu, QStatusBar, QStyle, QPushButton, QFileDialog)
+from PySide2.QtGui import QTextCursor, QImage, QPixmap, QGuiApplication
 
-from PySide.QtCore import (QProcess,QRect,Qt,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
-from PySide.QtGui import (QApplication, QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QImage,
-                          QAction, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,QTextCursor, QComboBox,
-                          QTextEdit, QMenuBar, QMenu, QStatusBar, QStyle, QPushButton, QFileDialog, QDesktopWidget,QPixmap)
+
 
 
 """"""""""""""""""
-open_ephys_path = 'C:/Users/admin/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/open-ephys.exe'
-config_path =  'C:/Users/admin/Desktop/Analysis/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin'
+current_path = os.path.dirname(os.path.realpath(__file__))
+open_ephys_path = current_path + '/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/open-ephys.exe'
+config_path =  current_path + '/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin'
 default_config = config_path + '/lastConfig.xml'
-data_save_dir = 'C:/Users/admin/Desktop/'
+data_save_dir = current_path + '/'
 
 """"""""""""""""""
 
@@ -121,8 +122,12 @@ class MainWindow(QMainWindow):
         self.window_height = 700
         self.window_width = 1100
         
-        self.screen2 = QDesktopWidget().screenGeometry(0)
-        self.move(self.screen2.left()+(self.screen2.width()-self.window_width)/2.,self.screen2.top()+(self.screen2.height()-self.window_height)/2.)
+        self.screen2_left = QGuiApplication.primaryScreen().availableGeometry().left()
+        self.screen2_top = QGuiApplication.primaryScreen().availableGeometry().top()
+        self.screen2_height = QGuiApplication.primaryScreen().availableGeometry().height()
+        self.screen2_width = QGuiApplication.primaryScreen().availableGeometry().width()
+        
+        self.move(self.screen2_left+(self.screen2_width-self.window_width)/2.,self.screen2_top+(self.screen2_height-self.window_height)/2.)
         
         self.get_info()
         self.noinfo = True
@@ -633,7 +638,7 @@ if __name__ == '__main__':
             #create a QApplication if one doesn't already exist
             app = QApplication.instance()
             if app == None:
-                app = QApplication(['/Users/Patrick/anaconda/lib/python2.7/site-packages/spyderlib/widgets/externalshell/start_ipython_kernel.py'])
+                app = QApplication([])
             
             #create and show the main window
             mwind = MainWindow()

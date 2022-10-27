@@ -10,7 +10,7 @@ import numpy as np
 from scipy import ndimage
 import qimage2ndarray
 import time
-from PySide.QtGui import QPixmap
+from PySide2.QtGui import QPixmap
 
 vidbuffer_size = 100
 
