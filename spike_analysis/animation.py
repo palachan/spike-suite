@@ -7,7 +7,7 @@ Created on Tue Aug  1 21:45:04 2017
 import numpy as np
 import matplotlib as mpl
 # mpl.rcParams['backend.qt']='PySide6'
-mpl.use('QtAgg')
+#mpl.use('QtAgg')
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import colors as mplcolors

@@ -15,12 +15,12 @@ import pickle
 import time
 
          
-from PySide6.QtCore import (QRect,Qt,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
-from PySide6.QtWidgets import (QApplication, QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QButtonGroup,
+from PySide2.QtCore import (QRect,Qt,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
+from PySide2.QtWidgets import (QAction, QApplication, QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QButtonGroup,
                           QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QComboBox,
                           QTextEdit, QMenuBar, QMenu, QStatusBar, QStyle, QPushButton, QFileDialog)
 
-from PySide6.QtGui import QAction, QTextCursor
+from PySide2.QtGui import QTextCursor
 
 from spike_analysis import main, plot
 
@@ -33,7 +33,7 @@ from matplotlib.backends.backend_qtagg import (
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 # from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+#from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
 import warnings

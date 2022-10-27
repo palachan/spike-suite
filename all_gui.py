@@ -10,17 +10,19 @@ gui to run everything
 #import necessary modules
 import os
 import sys
+# os.chdir(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))))
+
 import subprocess
 import spike_analysis.gui
 import kilosort_control.sort_gui
 
 #import GUI objects/Widgets
-from PySide6.QtCore import QRect
+from PySide2.QtCore import QRect
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QFrame, QSizePolicy,
+from PySide2.QtWidgets import (QApplication, QMainWindow, QFrame, QSizePolicy,
                           QVBoxLayout, QMenuBar, QPushButton)
 
-from PySide6.QtGui import QGuiApplication
+from PySide2.QtGui import QGuiApplication
 
 #make sure we're using the right qt API
 os.environ['QT_API'] = 'pyside'

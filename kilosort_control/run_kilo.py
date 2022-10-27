@@ -8,10 +8,8 @@ import sys
 import os
 import shutil
 import numpy as np
-if sys.version.startswith('3'):
-    import tkinter.filedialog as tkFileDialog
-else:
-    import tkFileDialog
+
+import tkinter.filedialog as tkFileDialog
 
 from kilosort_control import spike2bin, load_oe, load_nlx, kilo2ntt, write_config
 import copy

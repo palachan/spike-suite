@@ -12,12 +12,12 @@ import pickle
 
 from kilosort_control import run_kilo
 
-from PySide6.QtCore import (QRect,Qt,QObject,Signal,Slot,QThread)
-from PySide6.QtWidgets import (QApplication, QButtonGroup,QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QScrollArea,
+from PySide2.QtCore import (QRect,Qt,QObject,Signal,Slot,QThread)
+from PySide2.QtWidgets import (QApplication, QButtonGroup,QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, QScrollArea,
                           QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout, QComboBox,
                           QTextEdit, QMenuBar, QStatusBar, QPushButton, QFileDialog)
 
-from PySide6.QtGui import QTextCursor
+from PySide2.QtGui import QTextCursor
 
 
 #class for catching standard output and standard error 

@@ -8,7 +8,7 @@ script containing plotting functions
 """
 import matplotlib as mpl
 # mpl.rcParams['backend.qt']='PySide6'
-mpl.use('QtAgg')
+#mpl.use('QtAgg')
 from matplotlib import colors as mplcolors
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
