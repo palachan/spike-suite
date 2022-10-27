@@ -66,11 +66,11 @@ class VideoWorker(QObject):
                 
         #process the video frame
         if self.gui.recording and self.gui.vt_file is not None:
-                                        
+
             #open a csv file for saving tracking data
-            with open(self.gui.vt_file, 'a') as csvfile:
+            with open(self.gui.vt_file, 'a', newline='', encoding='utf-8') as csvfile:
                 #create a writer
-                vidwriter = csv.writer(csvfile,dialect='excel-tab')
+                vidwriter = csv.writer(csvfile)
                 #check if it's an empty file
                 if os.path.getsize(self.gui.vt_file) == 0:
                     #write headers
@@ -95,7 +95,7 @@ class Worker(QObject):
 
     def acquire(self):
 
-        self.gui.sock.send('GetSampleRate')
+        self.gui.sock.send_string('GetSampleRate')
         self.gui.fs = np.float(self.gui.sock.recv())
 
         #use process to start Run function in main script
@@ -315,7 +315,7 @@ class MainWindow(QMainWindow):
                 
                 while 1:
                     try:
-                        self.sock.send('StopRecord')
+                        self.sock.send_string('StopRecord')
                         self.sock.recv()
                     except:
                         continue
@@ -339,7 +339,7 @@ class MainWindow(QMainWindow):
                                 
                 while 1:
                     try:
-                        self.sock.send('StartAcquisition')
+                        self.sock.send_string('StartAcquisition')
                         self.sock.recv()
                     except:
                         continue
@@ -348,6 +348,7 @@ class MainWindow(QMainWindow):
                 self.acquiring = True
                 self.start_acq.connect(self.worker.acquire)
                 self.start_acq.emit('start!')
+
             
             self.action_Acq.setEnabled(False)
             self.action_Record.setChecked(False)
@@ -376,7 +377,7 @@ class MainWindow(QMainWindow):
                 
                 while 1:
                     try:
-                        self.sock.send('StartAcquisition')
+                        self.sock.send_string('StartAcquisition')
                         self.sock.recv()
                     except:
                         continue
@@ -384,7 +385,7 @@ class MainWindow(QMainWindow):
                 
                 while 1:
                     try:
-                        self.sock.send('StartRecord')
+                        self.sock.send_string('StartRecord')
                         self.sock.recv()
                     except:
                         continue
@@ -399,7 +400,7 @@ class MainWindow(QMainWindow):
                 
                 while 1:
                     try:
-                        self.sock.send('StartRecord')
+                        self.sock.send_string('StartRecord')
                         self.sock.recv()
                     except:
                         continue
@@ -424,7 +425,7 @@ class MainWindow(QMainWindow):
                         
         while 1:
             try:
-                self.sock.send('isRecording')
+                self.sock.send_string('isRecording')
                 rec = self.sock.recv()  
             except:
                 continue
@@ -433,7 +434,7 @@ class MainWindow(QMainWindow):
         if rec == '1':
             while 1:
                 try:
-                    self.sock.send('StopRecord')
+                    self.sock.send_string('StopRecord')
                     self.sock.recv()
                 except:
                     continue
@@ -444,7 +445,7 @@ class MainWindow(QMainWindow):
     
         while 1:
             try:
-                self.sock.send('isAcquiring')
+                self.sock.send_string('isAcquiring')
                 acq = self.sock.recv_string()
             except:
                 continue
@@ -453,7 +454,7 @@ class MainWindow(QMainWindow):
         if acq == '1':
             while 1:
                 try:
-                    self.sock.send('StopAcquisition')
+                    self.sock.send_string('StopAcquisition')
                     self.sock.recv()
                 except:
                     continue

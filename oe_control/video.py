@@ -19,17 +19,18 @@ def run_video_acq(self,sock):
     
     #start capturing video
     vc = cv2.VideoCapture(0)
+    
     #set resolution to 720p
     vc.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
     vc.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
-#    #set focus to 0 so it doesn't autofocus
+    #set focus to 0 so it doesn't autofocus
     vc.set(cv2.CAP_PROP_FOCUS, 0)
-#    #set the exposure low so we only pick up leds
-#    vc.set(cv2.CAP_PROP_EXPOSURE, -9)
+    #set the exposure low so we only pick up leds
+    vc.set(cv2.CAP_PROP_EXPOSURE, -9)
     #set the framerate to 30
     vc.set(cv2.CAP_PROP_FPS, 30)
     
-    vc.set(cv2.CAP_PROP_CONVERT_RGB,0)
+    #vc.set(cv2.CAP_PROP_CONVERT_RGB,0)
     
     #if everything is working, collect the first frame
     if vc.isOpened():
@@ -62,13 +63,12 @@ def run_video_acq(self,sock):
             if self.vt_file is None and self.recording:
                 while 1:
                     try:
-                        self.sock.send('GetRecordingPath')
-                        self.recdir = str(self.sock.recv())
+                        self.sock.send_string('GetRecordingPath')
+                        self.recdir = str(self.sock.recv().decode("utf-8"))
                     except:
                         continue
                     break
                 
-                print(self.recdir)
                 self.vt_file = self.recdir + '/vt1.txt'
                 
                 f = open(self.recdir + '/experiment_info.txt','wb')
@@ -82,26 +82,30 @@ def run_video_acq(self,sock):
             cv2.waitKey(1)
             while 1:
                 try:
-                    
                     #request a timestamp from the openephys gui
-                    sock.send('timestamp')
+                    sock.send_string('timestamp')
                     #grab the timestamp and make it an integer
                     timestamp=np.float(sock.recv())
                 except:
                     continue
                 break
+
+            #resized_frame = cv2.resize(frame,(540,360))
+            #image = qimage2ndarray.array2qimage(resized_frame)
+            #self.collect_frame.emit(image)
             
             #blur the image - this takes a while and we have some extra time
             #because video acq is so fast
             procframe = cv2.flip(cv2.GaussianBlur(frame, (11, 11), 0), -1)
+            #procframe=cv2.flip(frame)
             #send it to the video processing worker
             self.videoproc_worker.procvideo.emit(procframe,timestamp)
             
-            resized_frame = frame[:,380:]    
+            #resized_frame = frame[:,380:]    
 #            #resize the frame to a usable size
-            resized_frame = cv2.resize(resized_frame, (540,360))
+            resized_frame = cv2.resize(frame,(540,360))
             #switch to rgb for showing in gui
-            show_frame = resized_frame # cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
+            show_frame = resized_frame# cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
             #change to a different format?
             
             image = qimage2ndarray.array2qimage(show_frame)
@@ -179,6 +183,14 @@ def process_video(self,thresh,timestamp,vidwriter=None):
     #transform timestamp to microseconds by dividing by samplerate and multiplying by 1e6
     timestamp = np.int(timestamp * 1000000./self.fs)
         
+    if np.isnan(rx):
+        rx = 0
+    if np.isnan(ry):
+        ry = 0
+    if np.isnan(gx):
+        gx = 0
+    if np.isnan(gy):
+        gy = 0
     vidrow = [timestamp,rx,ry,gx,gy]
     
     self.vidbuffer.append(vidrow)
@@ -202,9 +214,9 @@ def process_video(self,thresh,timestamp,vidwriter=None):
     #add the green and red frames together for displaying
     thresh =  self.green_frame + self.red_frame
     
-    resized_thresh = thresh[:,:900]
+    #resized_thresh = thresh[:,:900]
     #resize frame to usable size
-    resized_thresh = cv2.resize(resized_thresh,(540,360))
+    resized_thresh = cv2.resize(thresh,(540,360))
     
     show_thresh = cv2.cvtColor(resized_thresh, cv2.COLOR_BGR2RGB)
     #flip it so cue card is south

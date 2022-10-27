@@ -2575,7 +2575,7 @@
     </PROCESSOR>
   </SIGNALCHAIN>
   <AUDIO bufferSize="1024" />
-  <CONTROLPANEL appendText="" isOpen="1" prependText="" recordEngine="OPENEPHYS" recordPath="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL45" />
+  <CONTROLPANEL appendText="" isOpen="1" prependText="" recordEngine="OPENEPHYS" recordPath="C:\Users\asale\Desktop\Patrick\spike-suite\oe_control\Patrick\PL45" />
   <AUDIOEDITOR isMuted="0" noiseGate="0" volume="91" />
   <RECORDENGINES>
     <ENGINE id="OPENEPHYS" name="Open Ephys">
