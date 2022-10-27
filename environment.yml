@@ -26,6 +26,7 @@ dependencies:
     - networkx==2.8.7
     - numba==0.56.3
     - numpy==1.23.4
+    - opencv-python==4.6.0.66
     - packaging==21.3
     - pillow==9.2.0
     - pyerfa==2.0.0.1
@@ -34,8 +35,12 @@ dependencies:
     - python-dateutil==2.8.2
     - pywavelets==1.4.1
     - pyyaml==6.0
+    - pyzmq==24.0.1
+    - qimage2ndarray==1.7
     - scikit-image==0.19.3
     - scipy==1.9.3
     - shiboken2==5.15.2.1
     - six==1.16.0
     - tifffile==2022.10.10
+    - zmq==0.0.0
+prefix: C:\Users\plachanc\Anaconda3\envs\spikesuite_env

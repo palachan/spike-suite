@@ -31,8 +31,8 @@ from PySide2.QtGui import QTextCursor, QImage, QPixmap, QGuiApplication
 
 """"""""""""""""""
 current_path = os.path.dirname(os.path.realpath(__file__))
-open_ephys_path = current_path + '/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin/open-ephys.exe'
-config_path =  current_path + '/plugin-GUI/Builds/VisualStudio2013/x64/Release64/bin'
+open_ephys_path = current_path + '/plugin-GUI/bin/open-ephys.exe'
+config_path =  current_path + '/plugin-GUI/bin'
 default_config = config_path + '/lastConfig.xml'
 data_save_dir = current_path + '/'
 

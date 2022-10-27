@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MAINWINDOW version="0.4.2.1" shouldReloadOnStartup="1">
+  <BOUNDS x="156" y="125" w="1433" h="856" fullscreen="0"/>
+  <RECENTDIRECTORYNAMES>
+    <DIRECTORY name="C:\Users\admin\Desktop\Patrick\PL48"/>
+    <DIRECTORY name="D:\OpenEphysData"/>
+    <DIRECTORY name="C:\Users\admin\Desktop\Patrick\Test"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\Test"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL45"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL60"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL61"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL57"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL53"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL52"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL47"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL50"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL48"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL51"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL46"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\Test2"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\ "/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\PL39"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\asdf"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Patrick\dfasdfasdfsd"/>
+    <DIRECTORY name="C:\Program Files\open-ephys-windows"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Analysis\plugin-GUI\Resources\Python\Output_RecordControl"/>
+    <DIRECTORY name="C:\Users\Jeffrey_Taube\Desktop\Analysis\plugin-GUI\Builds\VisualStudio2013\x64\Release64\bin"/>
+  </RECENTDIRECTORYNAMES>
+</MAINWINDOW>
