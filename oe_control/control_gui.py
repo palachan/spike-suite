@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
         self.get_info()
         self.noinfo = True
         
-        while self.noinfo:
+        while self.noinfo and self.info_window.isVisible():
             loop = QEventLoop()
             QTimer.singleShot(500.,loop.quit)
             loop.exec_()
@@ -637,6 +637,8 @@ class MainWindow(QMainWindow):
         info_layout.addWidget(ready_button)
         
         self.info_window.show()
+        
+        
 
             
 if __name__ == '__main__':

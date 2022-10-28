@@ -136,19 +136,19 @@ class MainWindow(QMainWindow):
         
         self.nlx_box = QCheckBox('Neuralynx')
         self.openephys_box = QCheckBox('Open-Ephys')
-        self.old_box = QCheckBox('Taube')
+        # self.old_box = QCheckBox('Taube')
         
         acq_buttons = QButtonGroup(self)
         acq_buttons.addButton(self.nlx_box)
         acq_buttons.addButton(self.openephys_box)
-        acq_buttons.addButton(self.old_box)
+        # acq_buttons.addButton(self.old_box)
         acq_buttons.setExclusive(True)
         
         acq_layout = QHBoxLayout()
         acq_layout.addWidget(acq_label)
         acq_layout.addWidget(self.nlx_box)
         acq_layout.addWidget(self.openephys_box)
-        acq_layout.addWidget(self.old_box)
+        # acq_layout.addWidget(self.old_box)
         
         self.acq_frame.setLayout(acq_layout)
         
@@ -158,8 +158,8 @@ class MainWindow(QMainWindow):
             acq = 'neuralynx'
         elif self.openephys_box.isChecked():
             acq = 'openephys'
-        elif self.old_box.isChecked():
-            acq = 'taube'
+        # elif self.old_box.isChecked():
+        #     acq = 'taube'
         
         #if we're doing single cluster mode, ask for a text file
         if button == 'single':
