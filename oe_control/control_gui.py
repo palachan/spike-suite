@@ -470,9 +470,9 @@ class MainWindow(QMainWindow):
             
         try:
             #open a csv file for saving tracking data
-            with open(self.vt_file, 'a') as csvfile:
+            with open(self.vt_file, 'a', newline='', encoding='utf-8') as csvfile:
                 #create a writer
-                vidwriter = csv.writer(csvfile,dialect='excel-tab')
+                vidwriter = csv.writer(csvfile)
                 #check if it's an empty file
                 for row in self.vidbuffer:
                     vidwriter.writerow(row)

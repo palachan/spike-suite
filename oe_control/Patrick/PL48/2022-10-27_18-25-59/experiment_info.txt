@@ -1,6 +1,0 @@
-###### Experiment Info ######
-Experimenter: Patrick
-Whose animal? Patrick
-Animal number: PL48
-Session number: 1
-Session type: Standard box

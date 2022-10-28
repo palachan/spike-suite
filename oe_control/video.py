@@ -96,7 +96,7 @@ def run_video_acq(self,sock):
             
             #blur the image - this takes a while and we have some extra time
             #because video acq is so fast
-            procframe = cv2.flip(cv2.GaussianBlur(frame, (11, 11), 0), -1)
+            procframe = cv2.GaussianBlur(frame, (11, 11), 0)
             #procframe=cv2.flip(frame)
             #send it to the video processing worker
             self.videoproc_worker.procvideo.emit(procframe,timestamp)
@@ -167,16 +167,16 @@ def process_video(self,thresh,timestamp,vidwriter=None):
     #find the center of mass coordinates for the red led
     rlocs = np.where(thresh_r > 0)
     try:
-        rx = np.sum(rlocs[0])/len(rlocs[0])
-        ry = np.sum(rlocs[1])/len(rlocs[1])
+        rx = np.sum(rlocs[1])/len(rlocs[1])
+        ry = np.sum(rlocs[0])/len(rlocs[0])
     except:
         rx,ry=[0,0]
     
     #find the center of mass coordinates for the green led
     glocs = np.where(thresh_g > 0)
     try:
-        gx = np.sum(glocs[0])/len(glocs[0])
-        gy = np.sum(glocs[1])/len(glocs[1])
+        gx = np.sum(glocs[1])/len(glocs[1])
+        gy = np.sum(glocs[0])/len(glocs[0])
     except:
         gx,gy=[0,0]
   
@@ -191,8 +191,8 @@ def process_video(self,thresh,timestamp,vidwriter=None):
         gx = 0
     if np.isnan(gy):
         gy = 0
+        
     vidrow = [timestamp,rx,ry,gx,gy]
-    
     self.vidbuffer.append(vidrow)
     
     if vidwriter is not None and len(self.vidbuffer)==vidbuffer_size:
@@ -220,7 +220,7 @@ def process_video(self,thresh,timestamp,vidwriter=None):
     
     show_thresh = cv2.cvtColor(resized_thresh, cv2.COLOR_BGR2RGB)
     #flip it so cue card is south
-    show_thresh = cv2.flip(show_thresh, -1)
+    # show_thresh = show_thresh
     #change to a different format?
     thresh_image = qimage2ndarray.array2qimage(show_thresh)
     

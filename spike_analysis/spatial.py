@@ -129,23 +129,23 @@ def center_points(ops,adv,trial_data):
         y = (interpd_pos[i][2]+interpd_pos[i][4])/2
         #add them to appropriate lists
         
-        if ops['acq'] == 'neuralynx' or ops['acq']=='taube':
-            center_x.append(x)
-            center_y.append(y)
-        elif ops['acq'] == 'openephys':
-            center_y.append(y)
-            center_x.append(x)
+        # if ops['acq'] == 'neuralynx' or ops['acq']=='taube':
+        center_x.append(x)
+        center_y.append(y)
+        # elif ops['acq'] == 'openephys':
+        #     center_y.append(y)
+        #     center_x.append(x)
         
     center_x = np.array(center_x)
     center_y = np.array(center_y)
     
-    if ops['acq'] == 'neuralynx':
+    if ops['acq'] == 'neuralynx' or ops['acq'] == 'openephys':
         #now we have to flip neuralynx's inverted y-axis
         center_y = -center_y + np.max(center_y)
             
-    elif ops['acq'] == 'openephys':
-        #now we have to flip the x axis (oops)
-        center_x = -center_x + np.max(center_x)
+    # elif ops['acq'] == 'openephys':
+    #     #now we have to flip the x axis (oops)
+    #     center_x = -center_x + np.max(center_x)
 
     #interpolates new timestamps between existing timestamps for spike time     
     #analyses to reach temporal precision given by bin_size variable 

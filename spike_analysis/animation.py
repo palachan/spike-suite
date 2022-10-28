@@ -44,19 +44,11 @@ def animated_heatmap(ops,adv,trial_data,cluster_data,spike_data):
     mid_x = (np.max(center_x) - np.min(center_x))/2.
     mid_y = (np.max(center_y) - np.min(center_y))/2.
     
-    if ops['acq'] == 'neuralynx':
-        #flip y on LED positions
-        red_x = positions[1]
-        red_y = positions[2]
-        green_x = positions[3]
-        green_y = positions[4]
-
-    elif ops['acq'] == 'openephys':
-        #flip x on LED positions
-        red_x = positions[2]
-        red_y = positions[1]
-        green_x = positions[3]
-        green_y = positions[4]        
+    red_x = positions[1]
+    red_y = positions[2]
+    green_x = positions[3]
+    green_y = positions[4]
+  
             
     if adv['speed_cutoff'] > 0:
         red_x = red_x[trial_data['og_speeds'] > adv['speed_cutoff']]
@@ -76,13 +68,10 @@ def animated_heatmap(ops,adv,trial_data,cluster_data,spike_data):
     red_y = (red_y - np.min(unscaled_center_y)) / yscale
     green_y = (green_y - np.min(unscaled_center_y)) / yscale
     
-    if ops['acq'] == 'neuralynx':
+    #flip y on LED positions
+    if ops['acq'] == 'neuralynx' or ops['acq'] == 'openephys':
         red_y = -red_y + 2. * mid_y
         green_y = -green_y + 2. * mid_y  
-        
-    elif ops['acq'] == 'openephys':
-        red_x = -red_x + 2. * mid_x
-        green_x = -green_x + 2. * mid_x  
     
     fig,ax = plt.subplots()
     plt.axis('scaled')
@@ -153,19 +142,10 @@ def animated_path_spike(ops,adv,trial_data,cluster_data,spike_data,spike_hd=Fals
     mid_x = (np.max(center_x) - np.min(center_x))/2.
     mid_y = (np.max(center_y) - np.min(center_y))/2.
     
-    if ops['acq'] == 'neuralynx':
-        #flip y on LED positions
-        red_x = positions[1]
-        red_y = positions[2]
-        green_x = positions[3]
-        green_y = positions[4]
-
-    elif ops['acq'] == 'openephys':
-        #flip x on LED positions
-        red_x = positions[1]
-        red_y = positions[2]
-        green_x = positions[3]
-        green_y = positions[4]        
+    red_x = positions[1]
+    red_y = positions[2]
+    green_x = positions[3]
+    green_y = positions[4]    
             
     if adv['speed_cutoff'] > 0:
         red_x = red_x[trial_data['og_speeds'] > adv['speed_cutoff']]
@@ -185,13 +165,10 @@ def animated_path_spike(ops,adv,trial_data,cluster_data,spike_data,spike_hd=Fals
     red_y = (red_y - np.min(unscaled_center_y)) / yscale
     green_y = (green_y - np.min(unscaled_center_y)) / yscale
     
-    if ops['acq'] == 'neuralynx':
+    #flip y on LED positions
+    if ops['acq'] == 'neuralynx' or ops['acq'] == 'openephys':
         red_y = -red_y + 2. * mid_y
         green_y = -green_y + 2. * mid_y  
-        
-    elif ops['acq'] == 'openephys':
-        red_x = -red_x + 2. * mid_x
-        green_x = -green_x + 2. * mid_x  
 
     colormap = plt.get_cmap('hsv')
     norm = mplcolors.Normalize(vmin=0, vmax=360)

@@ -37,7 +37,13 @@ def read_video_file(video_file,filename,trial_data):
     for i in range(len(timestamp)):
         rows.append([int(timestamp[i]),int(red_x[i]),int(red_y[i]),int(green_x[i]),int(green_y[i])])
     
-    angles = compute_angles(rows)
+    angles = np.array(compute_angles(rows))
+    
+    green_nondetects = list(np.array(green_x)==0) and list(np.array(green_y)==0)
+    red_nondetects = list(np.array(red_x)==0) and list(np.array(red_y)==0)
+
+    angles[green_nondetects] = 450
+    angles[red_nondetects] = 450
     
     raw_vdata['positions'] = rows
     raw_vdata['angles'] = angles
@@ -50,7 +56,7 @@ def compute_angles(rows):
     angles = []
     
     for row in rows:
-        angle = (360 - np.rad2deg(np.arctan2(row[2]-row[4],row[1]-row[3])))%360
+        angle = (360. - np.rad2deg(np.arctan2(row[2]-row[4],row[1]-row[3])))%360.
         angles.append(angle)
         
     return angles
