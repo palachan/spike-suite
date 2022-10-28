@@ -8,6 +8,9 @@ import os
 os.environ['QT_API'] = 'pyside2'
 
 import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import zmq
 import csv
 import qimage2ndarray
@@ -19,12 +22,13 @@ import shutil
 import xml.etree.ElementTree as et
 
 import video
+# from all_gui import MainWindow as launcherMainWindow
 
-from PySide2.QtCore import (QProcess,QRect,Qt,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
-from PySide2.QtWidgets import (QApplication, QMainWindow, QFrame, QLabel, QCheckBox, QLineEdit, 
-                          QAction, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QComboBox,
-                          QTextEdit, QMenuBar, QMenu, QStatusBar, QStyle, QPushButton, QFileDialog)
-from PySide2.QtGui import QTextCursor, QImage, QPixmap, QGuiApplication
+from PySide2.QtCore import (QRect,QObject,Signal,Slot,QThread,QEventLoop,QTimer)
+from PySide2.QtWidgets import (QApplication, QMainWindow, QFrame, QLabel, 
+                          QAction, QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
+                          QTextEdit, QMenuBar, QStatusBar, QStyle, QPushButton)
+from PySide2.QtGui import QTextCursor, QPixmap, QGuiApplication
 
 
 
@@ -96,7 +100,7 @@ class Worker(QObject):
     def acquire(self):
 
         self.gui.sock.send_string('GetSampleRate')
-        self.gui.fs = np.float(self.gui.sock.recv())
+        self.gui.fs = float(self.gui.sock.recv().decode('utf-8'))
 
         #use process to start Run function in main script
         self.gui.acquiring = True
@@ -129,6 +133,7 @@ class MainWindow(QMainWindow):
         
         self.move(self.screen2_left+(self.screen2_width-self.window_width)/2.,self.screen2_top+(self.screen2_height-self.window_height)/2.)
         
+        # try:
         self.get_info()
         self.noinfo = True
         
@@ -229,9 +234,9 @@ class MainWindow(QMainWindow):
         iconToolBar.addAction(self.action_Record)
         iconToolBar.addAction(action_Stop)
         
-#        self.sort_button = QPushButton('Sort Now',self)
-#        self.sort_button.setGeometry(QRect(self.window_width*.85,0,self.window_width*.15,self.window_height*.05))
-#        self.sort_button.clicked.connect(self.sort_now)
+        self.sort_button = QPushButton('Sort Now',self)
+        self.sort_button.setGeometry(QRect(self.window_width*.85,0,self.window_width*.15,self.window_height*.05))
+        self.sort_button.clicked.connect(self.sort_now)
                 
         #show the window if minimized by windows
         self.showMinimized()
@@ -495,28 +500,37 @@ class MainWindow(QMainWindow):
         elif not self.overlay:
             self.overlay = True
             
-#    def sort_now(self):
-#        
-#        if self.recdir is not None:
-#            os.chdir('./kilosort_control')
-#            #create and show the main window
-#            self.sort_frame = kilosort_control.sort_gui.MainWindow()
-#            self.sort_frame.show()
-#        
-#            #set up stream for stdout and stderr based on outputStream class
-#            self.outputStream = kilosort_control.sort_gui.outputStream()
-#            #when outputStream sends messages, connect to appropriate function for
-#            #writing to terminal window
-#            self.outputStream.message.connect(self.sort_frame.print_message)
-#    
-#            #connect stdout and stderr to outputStream
-#            sys.stdout = self.outputStream
-#            sys.stderr = self.outputStream
-#            
-#            self.sort_frame.run_now(self.recdir)
-#            
-#            self.close()
-            
+    def sort_now(self):
+        
+        # if self.recdir is not None:
+        os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
+        # subprocess.Popen('python all_gui.py %s' % self.recdir,
+        #                        shell=True) 
+        
+        subprocess.Popen('python all_gui.py C:/Users/plachanc/Desktop/2022-10-27_19-22-20',
+                               shell=True) 
+        
+    
+        # self.close()
+        
+        sys.exit(app.exec_())
+        
+        
+        # self.launcher = launcherMainWindow()
+        # # self.launcher.run_sort(recdir=self.recdir)
+        # self.launcher.run_sort(recdir='C:/Users/plachanc/Desktop/2022-10-27_19-22-20')
+        
+        # self.close()
+        
+    def closeEvent(self,event):
+        try:
+            os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            subprocess.Popen('python all_gui.py',
+                                   shell=True)
+        except:
+            pass
+        
     def get_info(self):
         
         self.info_window = QWidget()
@@ -659,4 +673,3 @@ if __name__ == '__main__':
             
             #exit the app when we're all done
             sys.exit(app.exec_())
-        

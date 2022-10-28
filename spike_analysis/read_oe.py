@@ -20,22 +20,18 @@ def read_video_file(video_file,filename,trial_data):
     green_x = []
     green_y = []
     
-    reader = csv.reader(open(video_file,'r'),dialect='excel-tab')
+    reader = csv.reader(open(video_file,'r'))
     for row in reader:
         try:
             timestamp.append(float(row[0]))
-            red_x.append(int(row[1]))
-            red_y.append(int(row[2]))
-            green_x.append(int(row[3]))
-            green_y.append(int(row[4]))
+            red_x.append(float(row[1]))
+            red_y.append(float(row[2]))
+            green_x.append(float(row[3]))
+            green_y.append(float(row[4]))
         except:
             pass
         
     timestamp = np.asarray(timestamp).astype(np.int)
-
-#    timestamp *= 1000000./30000.
-    
-#    timestamp = timestamp.astype(np.int)
 
     rows = []
     for i in range(len(timestamp)):

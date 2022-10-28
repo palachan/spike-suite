@@ -14,7 +14,7 @@ def load_spikefile(filename):
     ''' loads an openephys .spikes file '''
 
     #read the header
-#    fs,numChannels = load_header(filename)
+    # fs,numChannels = load_header(filename)
     fs,numChannels = 30000.,4
     numSamples = 40 # **NOT CURRENTLY WRITTEN TO HEADER**
             

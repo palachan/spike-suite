@@ -81,8 +81,10 @@ def run(self,fpath,config_ops,acq):
     if acq == 'neuralynx':
         event_file = dirname + '/events.nev'
         ttl_ts,ttl_ids,ttl_msgs = load_nlx.grab_nev_data(event_file)
-            
-    first_timestamp = ttl_ts[0]
+        first_timestamp = ttl_ts[0]
+        
+    else:
+        first_timestamp = 0
         
     ttfiles = sorted(ttfiles)
         
@@ -284,8 +286,10 @@ def batch_run(self,fpath,config_ops,acq):
         if acq == 'neuralynx':
             event_file = dirname + '/events.nev'
             ttl_ts,ttl_ids,ttl_msgs = load_nlx.grab_nev_data(event_file)
-                
-        first_timestamp = ttl_ts[0]
+            first_timestamp = ttl_ts[0]
+            
+        else:
+            first_timestamp == 0
                 
         ttfiles = sorted(ttfiles)
             
@@ -376,8 +380,10 @@ def batch_run(self,fpath,config_ops,acq):
         if acq == 'neuralynx':
             event_file = dirname + '/events.nev'
             ttl_ts,ttl_ids,ttl_msgs = load_nlx.grab_nev_data(event_file)
-                
-        first_timestamp = ttl_ts[0]
+            first_timestamp = ttl_ts[0]
+            
+        else:
+            first_timestamp = 0
                 
         ttfiles = sorted(ttfiles)
         

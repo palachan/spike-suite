@@ -22,7 +22,7 @@ def write_ntt(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain
         admax = '1000'
         filename = dirname + '/' + trodename[:(len(trodename)-len('.spikes'))] + '.NTT'
 
-        write_ntt_header(nlx_headersize=16*2**10, name=filename, t_open=None, t_close=None,
+        header = write_ntt_header(nlx_headersize=16*2**10, name=filename, t_open=None, t_close=None,
                              filetype='Spike', fileversion='3.3.0', recordsize='304',
                              cheetahrev='5.6.3', hardwaresubname='AcqSystem1', hardwaresubtype='Cheetah64',
                              samplingfreq=str(int(fs)), admaxvalue=admax, adbitvolts='0.000000004577776380187970 0.000000004577776380187970 0.000000004577776380187970 0.000000004577776380187970',

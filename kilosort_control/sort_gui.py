@@ -116,6 +116,12 @@ class MainWindow(QMainWindow):
         self.setStatusBar(statusbar)
         
         self.set_defaults()
+        
+        if self.launcher is not None:
+            if self.launcher.recdir is not None:
+                print(isinstance(self.launcher.recdir,str))
+                self.run_now(self.launcher.recdir)
+                
 
                 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -149,6 +155,7 @@ class MainWindow(QMainWindow):
         
     def run(self,button):
         
+        print(os.getcwd())        
         if self.nlx_box.isChecked():
             acq = 'neuralynx'
         elif self.openephys_box.isChecked():
@@ -193,6 +200,7 @@ class MainWindow(QMainWindow):
 
     def run_now(self,fname):
 
+        print(os.getcwd())
         acq = 'openephys'
                         
         with open('config_ops.pickle','rb') as f:
@@ -454,7 +462,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self,event):
         
         if self.launcher is not None:
-            self.launcher.show_launcher()    
+            self.launcher.show_launcher()  
+            
+        
                         
     #this function acts as a slot to accept 'message' signal
     @Slot(str)
@@ -471,7 +481,7 @@ if __name__ == '__main__':
     #create a QApplication if one doesn't already exist
     app = QApplication.instance()
     if app == None:
-        app = QApplication(['/Users/Patrick/anaconda/lib/python2.7/site-packages/spyderlib/widgets/externalshell/start_ipython_kernel.py'])
+        app = QApplication([])
     
     #create and show the main window
     frame = MainWindow()

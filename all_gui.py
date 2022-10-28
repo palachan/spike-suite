@@ -25,7 +25,7 @@ from PySide2.QtWidgets import (QApplication, QMainWindow, QFrame, QSizePolicy,
 from PySide2.QtGui import QGuiApplication
 
 #make sure we're using the right qt API
-os.environ['QT_API'] = 'pyside'
+os.environ['QT_API'] = 'pyside2'
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(buttons)
         
     def run_analysis(self):        
-        os.chdir('./spike_analysis')
+        os.chdir(os.path.dirname(os.path.abspath(__file__)) + '/spike_analysis')
         #create and show the main window
         self.analysis_frame = spike_analysis.gui.MainWindow(launcher=self)
         self.analysis_frame.show()
@@ -110,9 +110,13 @@ class MainWindow(QMainWindow):
         
         self.close()
         
-    def run_sort(self):
-        os.chdir('./kilosort_control')
+    def run_sort(self,recdir=None):
+        os.chdir(os.path.dirname(os.path.abspath(__file__)) + '/kilosort_control')
         #create and show the main window
+
+        self.recdir = recdir
+        print(self.recdir)
+            
         self.sort_frame = kilosort_control.sort_gui.MainWindow(launcher=self)
         self.sort_frame.show()
     
@@ -133,11 +137,14 @@ class MainWindow(QMainWindow):
         subprocess.Popen('python ./oe_control/control_gui.py',
                                shell=True) 
         
-        self.close()
+        # self.close()
+        
+        sys.exit(app.exec_())
+
 
     def show_launcher(self):
         #create and show the main window
-        os.chdir('../')
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         self.show()
         
         try:
@@ -158,7 +165,11 @@ if __name__ == '__main__':
     
     #create and show the main window
     frame = MainWindow()
-    frame.show()
+    
+    if len(sys.argv) > 1:
+        frame.run_sort(sys.argv[1])
+    else:
+        frame.show()
     
     #exit the app when we're all done
     sys.exit(app.exec_())
