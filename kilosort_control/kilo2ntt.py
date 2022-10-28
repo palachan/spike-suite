@@ -32,7 +32,8 @@ def write_ntt(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain
                              threshval='0 0 0 0', minretriggertime=None, spikeretriggertime=None,
                              dualthresh=None, featurepeak1=None, featurepeak2=None,
                              featurepeak3=None, featurepeak4=None, featurevalley1=None,
-                             featurevalley2=None, featurevalley3=None, featurevalley4=None)
+                             featurevalley2=None, featurevalley3=None, featurevalley4=None,
+                             dummy=True)
     
 
     #define out ncs datatypes
@@ -104,7 +105,8 @@ def write_nst(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain
                              threshval='0 0', minretriggertime=None, spikeretriggertime=None,
                              dualthresh=None, featurepeak1=None, featurepeak2=None,
                              featurepeak3=None, featurepeak4=None, featurevalley1=None,
-                             featurevalley2=None, featurevalley3=None, featurevalley4=None)
+                             featurevalley2=None, featurevalley3=None, featurevalley4=None,
+                             dummy=True)
     
 
     #define out ncs datatypes

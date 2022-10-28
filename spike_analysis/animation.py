@@ -162,8 +162,8 @@ def animated_path_spike(ops,adv,trial_data,cluster_data,spike_data,spike_hd=Fals
 
     elif ops['acq'] == 'openephys':
         #flip x on LED positions
-        red_x = positions[2]
-        red_y = positions[1]
+        red_x = positions[1]
+        red_y = positions[2]
         green_x = positions[3]
         green_y = positions[4]        
             

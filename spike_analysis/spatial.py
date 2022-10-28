@@ -133,8 +133,8 @@ def center_points(ops,adv,trial_data):
             center_x.append(x)
             center_y.append(y)
         elif ops['acq'] == 'openephys':
-            center_y.append(x)
-            center_x.append(y)
+            center_y.append(y)
+            center_x.append(x)
         
     center_x = np.array(center_x)
     center_y = np.array(center_y)
@@ -1488,26 +1488,7 @@ def plot_ebc(ops,adv,trial_data,cluster_data,spike_data,self,direction_variable=
     heatmap = spikes/occ
     
     ref_angles = np.deg2rad(ref_angles)
-
-#    h_interp = heatmap.copy()
-#    v_interp = heatmap.copy()
-#    
-#    for i in range(len(heatmap)):
-#        nans,x = np.isnan(h_interp[i]), lambda z: z.nonzero()[0]
-#        try:
-#            h_interp[i][nans]= np.interp(x(nans), x(~nans), h_interp[i][~nans])
-#        except:
-#            pass
-#        
-#    for i in range(len(heatmap[0])):
-#        nans,x = np.isnan(v_interp[:,i].flatten()), lambda z: z.nonzero()[0]
-#        try:
-#            v_interp[:,i][nans]= np.interp(ref_angles[x(nans)], ref_angles[x(~nans)], v_interp[:,i][~nans],period=2*np.pi)
-#        except:
-#            pass
-#        
-#    histm = (h_interp + v_interp)/2.
-    
+   
     hist3 = np.concatenate((heatmap,heatmap,heatmap),axis=0)
     hist3 = convolve(hist3,Gaussian2DKernel(x_stddev=2,y_stddev=2))
     new_hist = hist3[len(heatmap):len(heatmap)*2]

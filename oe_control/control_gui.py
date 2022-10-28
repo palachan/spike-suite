@@ -505,11 +505,11 @@ class MainWindow(QMainWindow):
         # if self.recdir is not None:
         os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         
-        # subprocess.Popen('python all_gui.py %s' % self.recdir,
-        #                        shell=True) 
+        subprocess.Popen('python all_gui.py %s' % self.recdir,
+                                shell=True) 
         
-        subprocess.Popen('python all_gui.py C:/Users/plachanc/Desktop/2022-10-27_19-22-20',
-                               shell=True) 
+        # subprocess.Popen('python all_gui.py C:/Users/plachanc/Desktop/2022-10-27_19-22-20',
+        #                        shell=True) 
         
     
         # self.close()

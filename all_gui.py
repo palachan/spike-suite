@@ -115,7 +115,6 @@ class MainWindow(QMainWindow):
         #create and show the main window
 
         self.recdir = recdir
-        print(self.recdir)
             
         self.sort_frame = kilosort_control.sort_gui.MainWindow(launcher=self)
         self.sort_frame.show()

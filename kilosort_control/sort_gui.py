@@ -118,8 +118,7 @@ class MainWindow(QMainWindow):
         self.set_defaults()
         
         if self.launcher is not None:
-            if self.launcher.recdir is not None:
-                print(isinstance(self.launcher.recdir,str))
+            if isinstance(self.launcher.recdir,str):
                 self.run_now(self.launcher.recdir)
                 
 
@@ -155,7 +154,6 @@ class MainWindow(QMainWindow):
         
     def run(self,button):
         
-        print(os.getcwd())        
         if self.nlx_box.isChecked():
             acq = 'neuralynx'
         elif self.openephys_box.isChecked():
@@ -200,7 +198,6 @@ class MainWindow(QMainWindow):
 
     def run_now(self,fname):
 
-        print(os.getcwd())
         acq = 'openephys'
                         
         with open('config_ops.pickle','rb') as f:

@@ -15,7 +15,8 @@ def write_ntt_header(nlx_headersize=16*2**10, name=None, t_open=None, t_close=No
                      threshval=None, minretriggertime=None, spikeretriggertime=None,
                      dualthresh=None, featurepeak1=None, featurepeak2=None,
                      featurepeak3=None, featurepeak4=None, featurevalley1=None,
-                     featurevalley2=None, featurevalley3=None, featurevalley4=None):
+                     featurevalley2=None, featurevalley3=None, featurevalley4=None,
+                     dummy=False):
     """
     Returns a .ntt header
     Parameters
@@ -30,7 +31,10 @@ def write_ntt_header(nlx_headersize=16*2**10, name=None, t_open=None, t_close=No
     header: byte string
     """
 
-    header = '######## Neuralynx Data File Header' + '\r\n'
+    if not dummy:
+        header = '######## Neuralynx Data File Header' + '\r\n'
+    else:
+        header = '######## Neuralynx Data File Header - THIS IS A DUMMY HEADER FROM kilosort_control CONTAINING FAKE INFO - SEE ORIGINAL SPIKE FILE FOR RECORDING INFO' + '\r\n'
     if name is not None:
         header += '## File Name ' + name + '\r\n'
     else:
@@ -195,7 +199,8 @@ def write_nst_header(nlx_headersize=16*2**10, name=None, t_open=None, t_close=No
                      threshval=None, minretriggertime=None, spikeretriggertime=None,
                      dualthresh=None, featurepeak1=None, featurepeak2=None,
                      featurepeak3=None, featurepeak4=None, featurevalley1=None,
-                     featurevalley2=None, featurevalley3=None, featurevalley4=None):
+                     featurevalley2=None, featurevalley3=None, featurevalley4=None,
+                     dummy=False):
     """
     Returns a .nst header
     Parameters
@@ -210,7 +215,11 @@ def write_nst_header(nlx_headersize=16*2**10, name=None, t_open=None, t_close=No
     header: byte string
     """
 
-    header = '######## Neuralynx Data File Header' + '\r\n'
+    if not dummy:
+        header = '######## Neuralynx Data File Header' + '\r\n'
+    else:
+        header = '######## Neuralynx Data File Header - THIS IS A DUMMY HEADER FROM kilosort_control CONTAINING FAKE INFO - SEE ORIGINAL SPIKE FILE FOR RECORDING INFO' + '\r\n'
+
     if name is not None:
         header += '## File Name ' + name + '\r\n'
     else:

@@ -14,8 +14,8 @@ def load_spikefile(filename):
     ''' loads an openephys .spikes file '''
 
     #read the header
-    # fs,numChannels = load_header(filename)
-    fs,numChannels = 30000.,4
+    fs,numChannels = load_header(filename)
+    # fs,numChannels = 30000.,4
     numSamples = 40 # **NOT CURRENTLY WRITTEN TO HEADER**
             
     #define the data types for reading the file
@@ -57,13 +57,16 @@ def load_header(filename):
             counter += 1
             if counter > 10:
                 break
-            line = line.decode("utf-8")
-            if line.startswith("header.sampleRate ="):
-                fs = line[len("header.sampleRate ="):len(line)-2]
-                fs = np.int(fs.strip())
-            elif line.startswith("header.num_channels ="):
-                numChannels = line[len("header.num_channels ="):len(line)-2]
-                numChannels = np.int(numChannels.strip())
+            try:
+                line = line.decode("utf-8")
+                if line.startswith("header.sampleRate ="):
+                    fs = line[len("header.sampleRate ="):len(line)-2]
+                    fs = float(fs.strip())
+                elif line.startswith("header.num_channels ="):
+                    numChannels = line[len("header.num_channels ="):len(line)-2]
+                    numChannels = int(numChannels.strip())
+            except:
+                break
         f.close()
     
     return fs, numChannels
