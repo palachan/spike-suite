@@ -338,7 +338,7 @@ def read_files(ops,adv,fdir,trial,metadata=False):
         if file == 'bounds.txt':
             bounds_file = trial + '/' + file
             with open(bounds_file,'r') as f:
-                reader = csv.reader(f,dialect='excel-tab')
+                reader = csv.reader(f)
                 for row in reader:
                     trial_data['bounds'] = np.array(row).astype(np.float)
                     
