@@ -18,7 +18,7 @@ import copy
 no_data = True
 run_kilo = True
 fs=30000.
-zero_channels = [13,14,15]
+zero_channels = []
 
 def run_kilosort(fpath,bin_file,fs,n_trodes,trodetype,self):
         

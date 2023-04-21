@@ -348,7 +348,52 @@ def read_files(ops,adv,fdir,trial,metadata=False):
                 video_file = trial + '/' + file
                 #extract raw tracking data from the video file using read_nvt function
                 trial_data, raw_vdata, adv = read_nlx.read_nvt(adv,video_file,trial_data)
-               
+                
+                trial_data['dlc_file'] = None
+                dlc_file = trial + '/' + file[:-4] + '_dlc.csv'
+                if os.path.exists(dlc_file):
+
+                    smi_file = trial + '/' + file[:-4] + '.smi'
+                    with open(smi_file, 'r') as f:
+                        timestamps = []
+                        start = False
+                        for line in f:
+                            if line.startswith("<SYNC Start=0>"):
+                                start = True
+                            elif line.startswith("</BODY>"):
+                                start = False
+                            if start:
+                                line = line.strip()
+                                timestamps.append(int((line.split('ENUSCC>'))[1].split('</SYNC>')[0]))
+                    
+                    new_pos = []
+                    with open(dlc_file, 'r') as f:
+                        reader = csv.reader(f)
+                        count = 0
+                        for row in reader:
+                            count += 1
+                            if count < 4:
+                                continue
+                            else:
+                                current_pos = [timestamps[count-4]]
+                                if np.float(row[3]) < .1:
+                                    current_pos += [0,0]
+                                else:
+                                    current_pos += [np.float(row[1]),np.float(row[2])]
+                                    
+                                if np.float(row[6]) < .1:
+                                    current_pos += [0,0]
+                                else:
+                                    current_pos += [np.float(row[4]),np.float(row[5])]
+                                    
+                                new_pos.append(current_pos)
+                                # new_pos.append([raw_vdata['positions'][count-4][0],np.float(row[1]),np.float(row[2]),np.float(row[4]),np.float(row[5])])
+
+                    
+                    raw_vdata['positions'] = new_pos
+                    raw_vdata['angles'] = np.zeros(len(new_pos))
+                    trial_data['dlc_file'] = dlc_file
+       
         if file.startswith('vt1') and file.endswith('.txt') and ops['acq'] == 'openephys':
             if not metadata:
                 video_file = trial + '/' + file

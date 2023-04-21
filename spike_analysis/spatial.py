@@ -202,6 +202,24 @@ def scale_tracking_data(adv,trial_data,trial):
         trial_data['center_x'] = center_x
         trial_data['center_y'] = center_y
         
+    if trial_data['dlc_file'] is not None:
+        
+        led_dist = 3. #in cm
+        side = -1 #1 for left, -1 for right
+        angles = np.deg2rad(trial_data['angles'])
+
+        center_x = center_x + side * led_dist * np.sin(angles)
+        center_y = center_y - side * led_dist * np.cos(angles)
+        
+        center_x -= np.min(center_x)
+        center_x = center_x * adv['arena_x'] / np.max(center_x)
+        
+        center_y -= np.min(center_y)
+        center_y = center_y * adv['arena_y'] / np.max(center_y)
+        
+        trial_data['center_x'] = center_x
+        trial_data['center_y'] = center_y
+
     return adv, trial_data
     
 def create_spike_lists(ops,adv,trial_data,cluster_data):
@@ -1118,10 +1136,20 @@ def spike_autocorr(ops,adv,trial_data,cluster_data,spike_data,self):
                 ac_matrix[j+bins_per_window] += spike_train[i+j]
                 
     ac_matrix[bins_per_window] = 0
-                
-    Fs = 1000./adv['bin_size']
     
-    output = np.abs(fft(ac_matrix,n=2**16))
+    
+    ac_copy = copy.deepcopy(ac_matrix)
+    ac_copy[bins_per_window] = np.max(ac_copy)
+
+    Fs = 200.
+
+    ac = np.zeros(int(Fs))
+    for i in range(len(ac)):
+        ac[i] = np.sum(ac_copy[5*i:(5*i+5)])
+                
+    # Fs = 1000./adv['bin_size']
+    
+    output = np.abs(fft(ac,n=2**16))
     increment = Fs/(2**16)
     theta_range = output[int(5./increment):int(11./increment)]
     top_theta = np.where(theta_range==np.max(theta_range))[0][0]

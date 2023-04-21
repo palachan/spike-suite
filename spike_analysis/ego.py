@@ -120,8 +120,8 @@ def plot_ebc(ops,adv,trial_data,cluster_data,spike_data,self):
     ax.text(-.2,1.05,'MRL = %s' % np.round(cluster_data['ebc_mrl'],4),transform=ax.transAxes)
     ax.text(-.2,1,'MRA = %s$^\circ$' % np.round(cluster_data['ebc_mra'],2),transform=ax.transAxes)
 
-
     ax.pcolormesh(cluster_data['ebc_ref_angles'],cluster_data['ebc_radii'],ebc_hist.T,vmin=0)
+
 
     if ops['save_all'] and not cluster_data['saved']['plot_ebc']:
 
