@@ -14,8 +14,9 @@ chanMap = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16];
 % Now we declare which channels are "connected" in this normal ordering, 
 % meaning not dead or used for non-ephys data
 
-%connected = true(16, 1);
-connected = [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0];
+connected = true(16, 1);
+%connected(13) = 1;
+%connected = [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0];
 
 % now we define the horizontal (x) and vertical (y) coordinates of these
 % 34 channels. For dead or nonephys channels the values won't matter. Again
@@ -23,8 +24,8 @@ connected = [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0];
 % are in um here, but the absolute scaling doesn't really matter in the
 % algorithm. 
 
-xcoords = 20 * [0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 0];
-ycoords = 20 * [7 8 9 9 10 10 11 11 12 12 13 13 14 14 15 15]; 
+xcoords = 20 * [0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1];
+ycoords = 20 * [8 8 9 9 10 10 11 11 12 12 13 13 14 14 15 15]; 
 
 % Often, multi-shank probes or tetrodes will be organized into groups of
 % channels that cannot possibly share spikes with the rest of the probe. This helps

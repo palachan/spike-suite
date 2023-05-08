@@ -23,7 +23,7 @@ connected = true(8, 1);
 % algorithm. 
 
 xcoords = 20 * [0 1 0 1 0 1 0 1];
-ycoords = 20 * [7 8 9 9 10 10 11 11]; 
+ycoords = 20 * [8 8 9 9 10 10 11 11]; 
 
 % Often, multi-shank probes or tetrodes will be organized into groups of
 % channels that cannot possibly share spikes with the rest of the probe. This helps

@@ -22,8 +22,8 @@ connected = true(16, 1);
 % are in um here, but the absolute scaling doesn't really matter in the
 % algorithm. 
 
-xcoords = 20 * [0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 0];
-ycoords = 20 * [7 8 9 9 10 10 11 11 12 12 13 13 14 14 15 15]; 
+xcoords = 20 * [0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1];
+ycoords = 20 * [8 8 9 9 10 10 11 11 12 12 13 13 14 14 15 15]; 
 
 % Often, multi-shank probes or tetrodes will be organized into groups of
 % channels that cannot possibly share spikes with the rest of the probe. This helps
