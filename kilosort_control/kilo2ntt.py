@@ -18,9 +18,14 @@ def write_ntt(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain
         filename = dirname + '/' + trodename
         header = load_nlx.load_full_header(og_filename,nlx_headersize=16*2**10)
 
-    elif acq == 'openephys':
+    elif acq == 'openephys' or acq == 'spikegadgets':
         admax = '1000'
-        filename = dirname + '/' + trodename[:(len(trodename)-len('.spikes'))] + '.NTT'
+        
+        if acq == 'openephys':
+            filename = dirname + '/' + trodename[:(len(trodename)-len('.spikes'))] + '.NTT'
+        elif acq == 'spikegadgets':
+            filename = dirname + '/' + trodename
+            admax = '2000'
 
         header = write_ntt_header(nlx_headersize=16*2**10, name=filename, t_open=None, t_close=None,
                              filetype='Spike', fileversion='3.3.0', recordsize='304',
@@ -44,6 +49,9 @@ def write_ntt(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain
         ('params'     , '<u4',   (8,)),
         ('waveforms'  , '<i2', (32,4)),
     ]) 
+    
+    
+    print(filename)
     
     f = open(filename,"wb")
     f.write(header)

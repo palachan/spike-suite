@@ -471,6 +471,108 @@ def batch_run(self,fpath,config_ops,acq):
     
     print('Done!')
     
+    
+def run_dat(self,fpath,config_ops,acq):
+    
+    fs = 30000
+    ttfiles = ['TT1.ntt','TT2.ntt','TT3.ntt','TT4.ntt','TT5.ntt','TT6.ntt','TT7.ntt','TT8.ntt']
+    trodetype = 'tetrode'
+    trodenum = 4
+    
+    bin_file = fpath
+    
+    dirname = os.path.dirname(bin_file)
+
+    kilo_folder = dirname + '/kilofiles'
+
+    if not os.path.exists(kilo_folder):
+        os.makedirs(kilo_folder)
+    else:
+        shutil.rmtree(kilo_folder)
+        os.makedirs(kilo_folder)
+            
+    write_config.write_config(config_ops,kilo_folder + '/config.m')
+    
+    print('starting kilosort')
+    run_kilosort(dirname,bin_file,fs,len(ttfiles),trodetype,self)        
+    print('done sorting')
+
+        
+    bin_data = np.fromfile(bin_file,dtype=np.int16)
+    reshaped_data = np.reshape(bin_data,(int(len(bin_data)/32),32))
+    
+    spike_times = np.load(kilo_folder+'/spike_times.npy', mmap_mode='r')
+    spike_clusters = np.load(kilo_folder+'/spike_clusters.npy', mmap_mode='r')
+    spike_templates = np.load(kilo_folder+'/spike_templates.npy', mmap_mode='r')
+    templates = np.load(kilo_folder+'/templates.npy', mmap_mode='r')
+    
+    trode_clusters = {}
+    for fname in ttfiles:
+        trode_clusters[fname] = []
+    
+    channel_templates = np.min(templates,axis=1)
+    for i in range(len(channel_templates)):
+        try:
+            top_channel = np.where(channel_templates[i] == np.min(channel_templates[i]))[0][0]
+            trode_clusters[ttfiles[int(top_channel/trodenum)]].append(i)
+        except:
+            pass
+        
+    trode_data = {}
+    for j in range(len(ttfiles)):
+        inds = [i for i in range(len(spike_templates)) if spike_templates[i] in trode_clusters[ttfiles[j]]]
+        trode_data[ttfiles[j]] = {}
+        trode_data[ttfiles[j]]['spike_times'] = spike_times[inds]
+        trode_data[ttfiles[j]]['spike_clusters'] = spike_clusters[inds]
+
+    from scipy import stats
+    
+
+#    wave_dict = {}
+    stitched = {}
+    for i in range(8):
+        
+        fname = ttfiles[i]
+        stitched[fname] = reshaped_data[:,(i*4):(i*4+4)].swapaxes(0,1)
+        
+        print('reloading %s' % fname)
+    
+        # filename = dirname + '/' + fname
+
+        wave_dict = {}
+        ind_dict = {}
+        for cluster in np.unique(trode_data[fname]['spike_clusters']):
+            wave_dict[str(cluster)] = []
+            ind_dict[str(cluster)] = []
+        for i in range(len(trode_data[fname]['spike_times'])):
+            wave_dict[str(trode_data[fname]['spike_clusters'][i][0])].append(np.swapaxes(stitched[fname][:,int(trode_data[fname]['spike_times'][i]-8):int(trode_data[fname]['spike_times'][i]+24)],0,1))
+            ind_dict[str(trode_data[fname]['spike_clusters'][i][0])].append(i)
+            
+        for cluster in np.unique(trode_data[fname]['spike_clusters']):
+            
+            wave_dict[str(cluster)] = np.swapaxes(np.asarray(wave_dict[str(cluster)]),0,2).copy()
+            ind_dict[str(cluster)] = np.asarray(ind_dict[str(cluster)])
+            trode_data[fname]['spike_clusters'].setflags(write=1)
+            
+            for j in range(len(wave_dict[str(cluster)])):
+#                print j
+                for k in range(len(wave_dict[str(cluster)][j])):
+                    zscores = np.abs(stats.zscore(wave_dict[str(cluster)][j][k]))
+                    bad_inds = ind_dict[str(cluster)][np.where(zscores > 3)]
+                    trode_data[fname]['spike_clusters'][bad_inds] = 0
+                            
+    
+    for trode in range(len(ttfiles)):
+        print('writing %d' % (trode+1))
+                
+        if trodetype == 'tetrode':
+            kilo2ntt.write_ntt(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, '1 1 1 1', acq, ttfiles[trode], '', 0)
+        elif trodetype == 'stereotrode':
+            kilo2ntt.write_nst(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, '1 1 1 1', acq, ttfiles[trode], '', 0)
+    
+    print('Done!')
+    
+    
 def find_trials(fdir):
     ''' search the chosen directory for trial folders '''
     #start with an empty list

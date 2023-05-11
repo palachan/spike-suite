@@ -47,6 +47,11 @@ class Worker(QObject):
         self.isrunning = True
         run_kilo.run(self.gui,fname,config_ops,acq)
         
+    def run_dat(self,fname,config_ops,acq):
+        #start a process
+        self.isrunning = True
+        run_kilo.run_dat(self.gui,fname,config_ops,acq)
+        
     def run_kilo_batch(self,fname,config_ops,acq):
         #start a process
         self.isrunning = True
@@ -136,19 +141,19 @@ class MainWindow(QMainWindow):
         
         self.nlx_box = QCheckBox('Neuralynx')
         self.openephys_box = QCheckBox('Open-Ephys')
-        # self.old_box = QCheckBox('Taube')
+        self.spikegadgets_box = QCheckBox('spikegadgets')
         
         acq_buttons = QButtonGroup(self)
         acq_buttons.addButton(self.nlx_box)
         acq_buttons.addButton(self.openephys_box)
-        # acq_buttons.addButton(self.old_box)
+        acq_buttons.addButton(self.spikegadgets_box)
         acq_buttons.setExclusive(True)
         
         acq_layout = QHBoxLayout()
         acq_layout.addWidget(acq_label)
         acq_layout.addWidget(self.nlx_box)
         acq_layout.addWidget(self.openephys_box)
-        # acq_layout.addWidget(self.old_box)
+        acq_layout.addWidget(self.spikegadgets_box)
         
         self.acq_frame.setLayout(acq_layout)
         
@@ -158,8 +163,8 @@ class MainWindow(QMainWindow):
             acq = 'neuralynx'
         elif self.openephys_box.isChecked():
             acq = 'openephys'
-        # elif self.old_box.isChecked():
-        #     acq = 'taube'
+        elif self.spikegadgets_box.isChecked():
+            acq = 'spikegadgets'
         
         #if we're doing single cluster mode, ask for a text file
         if button == 'single':
@@ -170,12 +175,19 @@ class MainWindow(QMainWindow):
             else:
                 fname = QFileDialog.getOpenFileName(self, 'Open File', '','')[0]
 
+        elif acq == 'spikegadgets':
+            fname = QFileDialog.getOpenFileName(self, 'Open File', '','Spikegadgets .dat files (*.dat)')[0]
+            
         #otherwiese, ask for a directory
         else:
             fname = QFileDialog.getExistingDirectory()
           
         with open('config_ops.pickle','rb') as f:
             config_ops = pickle.load(f)
+            
+        if acq == 'spikegadgets':
+            config_ops['datatype'] = 'dat'
+            config_ops['bin_file'] = fname
             
         #create a worker object based on Worker class and move it to our 
         #worker thread
@@ -190,8 +202,10 @@ class MainWindow(QMainWindow):
         except:
             pass
         
-        if button != 'batch':
+        if button != 'batch' and acq != 'spikegadgets':
             self.start.connect(self.worker.run_kilo)
+        elif button != 'batch' and acq == 'spikegadgets':
+            self.start.connect(self.worker.run_dat)
         else:
             self.start.connect(self.worker.run_kilo_batch)
         self.start.emit(fname,config_ops,acq)

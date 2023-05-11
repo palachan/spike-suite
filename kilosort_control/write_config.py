@@ -20,7 +20,10 @@ def write_config(config_ops,fpath):
     config += '\r\n'
     
     config += 'ops.datatype            = \'%s\';  %% binary (\'dat\', \'bin\') or \'openEphys\'\r\n' % config_ops['datatype']
-    config += 'ops.fbinary             = fullfile(fpath, \'data.bin\'); %% will be created for \'openEphys\'\r\n'	
+    if config_ops['datatype'] == 'dat':
+        config += 'ops.fbinary             = \'%s\'; %% will be created for \'openEphys\'\r\n' % config_ops['bin_file']	
+    else:
+        config += 'ops.fbinary             = fullfile(fpath, \'data.bin\'); %% will be created for \'openEphys\'\r\n'	
     config += 'ops.fproc               = fullfile(savepath, \'temp_wh.dat\'); %% residual from RAM of preprocessed data\r\n'
     config += 'ops.root                = fpath; %% \'openEphys\' only: where raw files are\r\n'
     config += '%% define the channel map as a filename (string) or simply an array\r\n'
