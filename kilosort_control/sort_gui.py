@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
         
         self.config_button = QPushButton('Config Options',self)
         self.config_button.clicked.connect(self.config_options)
-        self.config_button.setGeometry(QRect(self.window_width*.65,self.window_height*.03,self.window_width*.25,self.window_height*.1))
+        self.config_button.setGeometry(QRect(self.window_width*.7,self.window_height*.03,self.window_width*.20,self.window_height*.1))
         
         self.setup_acq_frame()
         
@@ -134,7 +134,7 @@ class MainWindow(QMainWindow):
     def setup_acq_frame(self):
         
         self.acq_frame = QFrame(self)
-        self.acq_frame.setGeometry(QRect(self.window_width*.1,self.window_height*.03,self.window_width*.5,self.window_height*.1))
+        self.acq_frame.setGeometry(QRect(self.window_width*.1,self.window_height*.03,self.window_width*.55,self.window_height*.1))
         self.acq_frame.setStyleSheet('background-color:magenta')
         
         acq_label = QLabel('Acq System')

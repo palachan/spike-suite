@@ -162,10 +162,10 @@ def run(self,fpath,config_ops,acq):
     for fname in ttfiles:
         trode_clusters[fname] = []
     
-    channel_templates = np.max(templates,axis=1)
-    for i in range(len(channel_templates)):
+    template_amplitudes = np.max(templates,axis=1) - np.min(templates,axis=1)
+    for i in range(len(template_amplitudes)):
         try:
-            top_channel = np.where(channel_templates[i] == np.max(channel_templates[i]))[0][0]
+            top_channel = np.where(template_amplitudes[i] == np.max(template_amplitudes[i]))[0][0]
             trode_clusters[ttfiles[int(top_channel/trodenum)]].append(i)
         except:
             pass
@@ -396,10 +396,10 @@ def batch_run(self,fpath,config_ops,acq):
         for fname in ttfiles:
             trode_clusters[fname] = []
         
-        channel_templates = np.max(templates,axis=1)
-        for i in range(len(channel_templates)):
+        template_amplitudes = np.max(templates,axis=1) - np.min(templates,axis=1)
+        for i in range(len(template_amplitudes)):
             try:
-                top_channel = np.where(channel_templates[i] == np.max(channel_templates[i]))[0][0]
+                top_channel = np.where(template_amplitudes[i] == np.max(template_amplitudes[i]))[0][0]
                 trode_clusters[ttfiles[int(top_channel/trodenum)]].append(i)
             except:
                 pass
@@ -510,10 +510,10 @@ def run_dat(self,fpath,config_ops,acq):
     for fname in ttfiles:
         trode_clusters[fname] = []
     
-    channel_templates = np.min(templates,axis=1)
-    for i in range(len(channel_templates)):
+    template_amplitudes = np.max(templates,axis=1) - np.min(templates,axis=1)
+    for i in range(len(template_amplitudes)):
         try:
-            top_channel = np.where(channel_templates[i] == np.min(channel_templates[i]))[0][0]
+            top_channel = np.where(template_amplitudes[i] == np.max(template_amplitudes[i]))[0][0]
             trode_clusters[ttfiles[int(top_channel/trodenum)]].append(i)
         except:
             pass
