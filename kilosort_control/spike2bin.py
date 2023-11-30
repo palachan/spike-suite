@@ -48,6 +48,7 @@ def stitch_waveforms(waveforms,timestamps,fs,trodenum):
 
 def write_bin(stitched,filename,writemode):
     """ write long waveform array to file """
+    # print(np.shape(stitched))
     #get a file ready
     with open(filename,writemode) as f:
         #write it!

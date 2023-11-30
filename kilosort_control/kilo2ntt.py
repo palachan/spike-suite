@@ -10,7 +10,7 @@ from itertools import groupby
 from kilosort_control.write_nlx_headers import write_ntt_header, write_nst_header
 from kilosort_control import load_nlx
 
-def write_ntt(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain, acq, trodename, og_filename, first_timestamp):    
+def write_ntt(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain, acq, trodename, og_filename, first_timestamp, inputrange='300 300 300 300'):    
     
     fname = trodename
  
@@ -32,7 +32,7 @@ def write_ntt(stitched, spike_times, spike_clusters, dirname, trode, fs, ampgain
                              cheetahrev='5.6.3', hardwaresubname='AcqSystem1', hardwaresubtype='Cheetah64',
                              samplingfreq=str(int(fs)), admaxvalue=admax, adbitvolts='0.000000004577776380187970 0.000000004577776380187970 0.000000004577776380187970 0.000000004577776380187970',
                              acqentname='TT1', numadchannels='4', adchannel='0 1 2 3',
-                             inputrange='300 300 300 300', inputinverted='True', amplowcut='600',
+                             inputrange=inputrange, inputinverted='True', amplowcut='600',
                              amphicut='6000',ampgain=ampgain.strip(),waveformlen='32', alignmentpt='8',
                              threshval='0 0 0 0', minretriggertime=None, spikeretriggertime=None,
                              dualthresh=None, featurepeak1=None, featurepeak2=None,

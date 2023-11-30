@@ -210,7 +210,7 @@ def plot_smoothed_heat(ops,adv,trial_data,cluster_data,spike_data,self):
     
     divider = make_axes_locatable(ax)
     cax = divider.append_axes('right', size='5%', pad=0.05)
-    
+
     im = ax.imshow(cluster_data['smoothed_heatmap'],cmap=colormap,norm=norm,extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]]) 
     
     self.figure.colorbar(im, cax=cax, orientation='vertical')
@@ -378,6 +378,143 @@ def plot_hd_vectors(ops,adv,trial_data,cluster_data,spike_data,self):
         plt.close()
         
         plot_direction_dependent(ops,adv,trial_data,cluster_data,spike_data)
+        
+        
+
+        from scipy.stats import pearsonr
+        x_gr = 30
+        y_gr = 30
+    
+        # tracking_file = 'D:/clean_files/por_rsc/PL107/MEC_RSC/2023-3-3 l_shape/1.2m s1/tracking_data.txt'
+        # fname = 'D:/clean_files/por_rsc/PL107/MEC_RSC/2023-3-3 l_shape/1.2m s1/spike_timestamps/TT14_SS_03.txt'
+        
+        
+        # tracking_file = 'D:/clean_files/por_rsc/PL110/POR_RSC/2023-2-28 l_shape/1.2m s2/tracking_data.txt'
+        # fname = 'D:/clean_files/por_rsc/PL110/POR_RSC/2023-2-28 l_shape/1.2m s2/spike_timestamps/TT13_SS_01.txt'
+        
+        center_x = trial_data['center_x']
+        center_y = trial_data['center_y']
+        angles = trial_data['angles']
+        spike_train = spike_data['ani_spikes']
+        
+        
+        # timestamps,center_x,center_y,angles = collect_data.read_video_file(tracking_file)
+        # trial_data = {'timestamps':timestamps,'center_x':center_x,'center_y':center_y,'angles':angles}
+        # spike_timestamps = np.arange(timestamps[0],timestamps[len(timestamps)-1],1000.)
+    
+        # trial_data['spike_timestamps'] = spike_timestamps
+        
+        # center_x=np.array(trial_data['center_x'])
+        # center_y=np.array(trial_data['center_y'])
+        # angles=np.array(trial_data['angles'])
+        
+        # cluster_data={}
+        # cluster_data['spike_list'] = collect_data.ts_file_reader(fname)
+        # spike_data,cluster_data = collect_data.create_spike_lists(trial_data,cluster_data)
+        # spike_train = spike_data['ani_spikes']
+        
+        heatmaps = []
+        
+        for i in np.arange(0,360,3):
+            
+            min_angle = i - 30
+            max_angle = i + 30
+            
+            if min_angle < 0:
+                new_min = 360 + min_angle
+                good_angles = np.where((angles>new_min)|(angles<max_angle))[0]
+                
+            elif max_angle > 360:
+                new_max = max_angle - 360
+                good_angles = np.where((angles>min_angle)|(angles<new_max))[0]
+                
+            else:
+                good_angles = np.where((angles>min_angle)&(angles<max_angle))
+                
+            xbins = np.digitize(center_x[good_angles],bins=np.linspace(np.min(center_x),np.max(center_x)+.01,x_gr+1,endpoint=True)) - 1
+            ybins = np.digitize(center_y[good_angles],bins=np.linspace(np.min(center_y),np.max(center_y)+.01,y_gr+1,endpoint=True)) - 1
+        
+            new_train = spike_train[good_angles]
+        
+            spikes = np.zeros((x_gr,y_gr))
+            occ = np.zeros((x_gr,y_gr))
+            
+            for j in range(len(new_train)):
+                spikes[xbins[j],ybins[j]] += new_train[j]
+                occ[xbins[j],ybins[j]] += 1./30.
+                
+            heatmap = spikes/occ
+            
+            fr_mat = convolve(heatmap,kernel=Gaussian2DKernel(x_stddev=1.5,y_stddev=1.5))
+            
+            # for k in range(16,30):
+            #     for j in range(16,30):
+            #         fr_mat[k,j] = 0
+            
+            linearized = fr_mat.flatten()
+            
+            heatmaps.append(linearized)
+    
+            print(i)
+            
+        try:
+            corr_mat = np.zeros((len(heatmaps),len(heatmaps)))
+            for i in range(len(heatmaps)):
+                for j in range(len(heatmaps)):
+                    r,p = pearsonr(heatmaps[i],heatmaps[j])
+                    corr_mat[i,j] = r
+                    
+            # plt.figure()
+            # plt.imshow(corr_mat)
+            # plt.show()
+            
+            
+            acorr = np.zeros(len(corr_mat))
+            for i in range(len(corr_mat)):
+                shifted = np.roll(corr_mat,i,axis=0)
+                shifted = np.roll(shifted,i,axis=1)
+                r,p = pearsonr(shifted.flatten(),corr_mat.flatten())
+                acorr[i] = r
+                
+            quad_score = acorr[30] - np.max([acorr[15], acorr[45]])
+            tri_score = acorr[40] - np.max([acorr[20], acorr[60]])
+        
+            print('quad score: %s' % str(quad_score))
+            print('tri score: %s' % str(tri_score))
+            
+        except:
+            pass
+    
+        # plt.figure()
+        # plt.plot(acorr)
+        # plt.show()
+        
+        
+        angle_bins = np.digitize(angles,bins=np.arange(0,360,6)) - 1
+        spikes = np.zeros(60)
+        occ = np.zeros(60)
+        
+        for i in range(len(angle_bins)):
+            spikes[angle_bins[i]] += spike_train[i]
+            occ[angle_bins[i]] += 1./30.
+            
+        hd_curve = spikes/occ
+        
+        curve_acorr = np.zeros(len(hd_curve))
+        for i in range(len(hd_curve)):
+            r,p = pearsonr(hd_curve,np.roll(hd_curve,i))
+            curve_acorr[i] = r
+            
+        hd_quad_score = curve_acorr[15] - np.max([curve_acorr[8],curve_acorr[23]])
+        
+        print('curve quad score: %s' % str(hd_quad_score))
+        # plt.figure()
+        # plt.plot(curve_acorr)
+        # plt.show()
+    
+    
+    
+    
         
         
 def plot_direction_dependent(ops,adv,trial_data,cluster_data,spike_data):
@@ -639,6 +776,9 @@ def plot_direction_dependent(ops,adv,trial_data,cluster_data,spike_data):
     
     vmin = 0
     vmax = np.nanmax(hmaps)
+    
+    if 'l_shape s' in trial_data['trial']:
+        hmaps[:,int(len(hmaps[0])/2):,int(len(hmaps[0])/2):] = np.nan
     
     ax12.imshow(hmaps[0],vmin=vmin,vmax=vmax,origin='lower')
     ax22.imshow(hmaps[1],vmin=vmin,vmax=vmax,origin='lower')

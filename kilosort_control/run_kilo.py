@@ -34,7 +34,7 @@ def run(self,fpath,config_ops,acq):
     no_data = True
     run_kilo = True
     fs=30000.
-    
+        
     stitched = {}
     ttfiles = []
     session_length = []
@@ -53,6 +53,10 @@ def run(self,fpath,config_ops,acq):
         elif basename.startswith('TT'):
             trodetype = 'tetrode'
             trodenum = 4
+            
+    binfile = dirname + '/data.bin'
+    if os.path.exists(binfile):
+        no_data = False
     
     kilo_folder = dirname + '/kilofiles'
     if not os.path.exists(kilo_folder):
@@ -244,6 +248,10 @@ def batch_run(self,fpath,config_ops,acq):
     no_data = True
     run_kilo = True
     fs=30000.
+    
+    binfile = fpath + '/data.bin'
+    if os.path.exists(binfile):
+        no_data = False
     
     trials = os.listdir(fpath)
         
@@ -472,6 +480,15 @@ def batch_run(self,fpath,config_ops,acq):
     print('Done!')
     
     
+def invert_dat(dat_file):
+    
+    bin_data = np.fromfile(dat_file,dtype=np.int16)
+    inverted_data = -bin_data
+    
+    inverted_dat_file = dat_file[:-4] + '_inverted.dat'
+    inverted_data.tofile(inverted_dat_file)
+    
+    
 def run_dat(self,fpath,config_ops,acq):
     
     fs = 30000
@@ -479,8 +496,10 @@ def run_dat(self,fpath,config_ops,acq):
     trodetype = 'tetrode'
     trodenum = 4
     
-    bin_file = fpath
+    og_bin_file = fpath
+    invert_dat(og_bin_file)
     
+    bin_file = og_bin_file[:-4] + '_inverted.dat'
     dirname = os.path.dirname(bin_file)
 
     kilo_folder = dirname + '/kilofiles'
@@ -491,14 +510,16 @@ def run_dat(self,fpath,config_ops,acq):
         shutil.rmtree(kilo_folder)
         os.makedirs(kilo_folder)
             
+    config_ops['bin_file'] = bin_file
     write_config.write_config(config_ops,kilo_folder + '/config.m')
     
     print('starting kilosort')
-    run_kilosort(dirname,bin_file,fs,len(ttfiles),trodetype,self)        
+    run_kilosort(dirname,bin_file,fs,len(ttfiles),trodetype,self)
     print('done sorting')
 
+    os.remove(bin_file)
         
-    bin_data = np.fromfile(bin_file,dtype=np.int16)
+    bin_data = np.fromfile(og_bin_file,dtype=np.int16)
     reshaped_data = np.reshape(bin_data,(int(len(bin_data)/32),32))
     
     spike_times = np.load(kilo_folder+'/spike_times.npy', mmap_mode='r')
@@ -565,10 +586,13 @@ def run_dat(self,fpath,config_ops,acq):
     for trode in range(len(ttfiles)):
         print('writing %d' % (trode+1))
                 
+        high_range = int(np.nanmax(np.abs(stitched[fname])))
+        inputrange = '%i %i %i %i' % (high_range, high_range, high_range, high_range)
+        
         if trodetype == 'tetrode':
-            kilo2ntt.write_ntt(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, '1 1 1 1', acq, ttfiles[trode], '', 0)
+            kilo2ntt.write_ntt(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, '1 1 1 1', acq, ttfiles[trode], '', 0, inputrange=inputrange)
         elif trodetype == 'stereotrode':
-            kilo2ntt.write_nst(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, '1 1 1 1', acq, ttfiles[trode], '', 0)
+            kilo2ntt.write_nst(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, '1 1 1 1', acq, ttfiles[trode], '', 0, inputrange=inputrange)
     
     print('Done!')
     

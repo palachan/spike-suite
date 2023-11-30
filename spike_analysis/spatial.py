@@ -351,6 +351,19 @@ def plot_heat(ops,adv,trial_data,cluster_data,spike_data,self,test=False):
 
     if test:
         return smoothed_heatmap
+    
+    if 'l_shape s' in trial_data['trial']:
+        # for i in range(int(len(smoothed_heatmap)/2.),len(smoothed_heatmap)):
+        #     for j in range(int(len(smoothed_heatmap[0])/2.),len(smoothed_heatmap[0])):
+        #         smoothed_heatmap[i,j] = np.nan
+        smoothed_heatmap[:int(len(smoothed_heatmap)/2.),int(len(smoothed_heatmap[0])/2.):] = np.nan
+        # plt.figure()
+        # plt.imshow(smoothed_heatmap)
+        # plt.show()
+    elif 'diagonal s' in trial_data['trial']:
+        X,Y=np.meshgrid(np.arange(len(smoothed_heatmap)),np.arange(len(smoothed_heatmap[0])))
+        combined = X+Y[::-1]
+        smoothed_heatmap[combined>len(smoothed_heatmap)+len(smoothed_heatmap[0]) * 0.29] = np.nan
 
     #add heatmaps to cluster data
     cluster_data['heat_xedges'] = xedges
