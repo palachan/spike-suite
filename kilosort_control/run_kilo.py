@@ -105,6 +105,7 @@ def run(self,fpath,config_ops,acq):
                     waveforms,timestamps,fs,gain,inverted = load_nlx.mmap_st_spike_file(filename)
                     
                 timestamps = timestamps - first_timestamp
+
                     
             elif acq == 'openephys':
                 waveforms,timestamps,fs,gain = load_oe.load_spikefile(filename)
@@ -252,6 +253,7 @@ def batch_run(self,fpath,config_ops,acq):
     binfile = fpath + '/data.bin'
     if os.path.exists(binfile):
         no_data = False
+        run_kilo = False
     
     trials = os.listdir(fpath)
         
@@ -301,30 +303,30 @@ def batch_run(self,fpath,config_ops,acq):
                 
         ttfiles = sorted(ttfiles)
             
-        if no_data:
-            for fname in ttfiles:
-                
-                print('processing %s' % fname)
+        # if no_data:
+        for fname in ttfiles:
             
-                filename = dirname + '/' + fname
-                if acq == 'neuralynx':
-                    if trodetype == 'tetrode':
-                        waveforms,timestamps,fs,gain,inverted = load_nlx.mmap_tt_spike_file(filename)
-                    elif trodetype == 'stereotrode':
-                        waveforms,timestamps,fs,gain,inverted = load_nlx.mmap_st_spike_file(filename)
-                        
-                    timestamps = timestamps - first_timestamp
-                        
-                elif acq == 'openephys':
-                    waveforms,timestamps,fs,gain = load_oe.load_spikefile(filename)
-                    inverted = True
+            print('processing %s' % fname)
+        
+            filename = dirname + '/' + fname
+            if acq == 'neuralynx':
+                if trodetype == 'tetrode':
+                    waveforms,timestamps,fs,gain,inverted = load_nlx.mmap_tt_spike_file(filename)
+                elif trodetype == 'stereotrode':
+                    waveforms,timestamps,fs,gain,inverted = load_nlx.mmap_st_spike_file(filename)
                     
-                if not inverted:
-                    waveforms = waveforms * -1.
+                timestamps = timestamps - first_timestamp
                     
-                stitched[fname] = spike2bin.stitch_waveforms(waveforms,timestamps,fs,trodenum)
+            elif acq == 'openephys':
+                waveforms,timestamps,fs,gain = load_oe.load_spikefile(filename)
+                inverted = True
                 
-                session_length.append(len(stitched[fname][1]))
+            if not inverted:
+                waveforms = waveforms * -1.
+                
+            stitched[fname] = spike2bin.stitch_waveforms(waveforms,timestamps,fs,trodenum)
+            
+            session_length.append(len(stitched[fname][1]))
                 
         max_session_length = max(session_length)
         
@@ -339,30 +341,34 @@ def batch_run(self,fpath,config_ops,acq):
         counter = 0
         
         print('writing binary file')
-        while counter < (max_session_length-10001):
+        while counter < (max_session_length-10001):                
+            if no_data:
                                 
-            all_stitched = stitched[ttfiles[0]][:,counter:(counter+10000)]
-            for fname in ttfiles[1:]:
-                all_stitched = np.concatenate((all_stitched,stitched[fname][:,counter:(counter+10000)]))
-            if len(session_boundaries)==1 and counter == 0:
-                spike2bin.write_bin(all_stitched, fpath + '/data.bin','wb')
-            else:
-                spike2bin.write_bin(all_stitched, fpath + '/data.bin','ab')
+                all_stitched = stitched[ttfiles[0]][:,counter:(counter+10000)]
+                for fname in ttfiles[1:]:
+                    all_stitched = np.concatenate((all_stitched,stitched[fname][:,counter:(counter+10000)]))
+                if len(session_boundaries)==1 and counter == 0:
+                    spike2bin.write_bin(all_stitched, fpath + '/data.bin','wb')
+                else:
+                    spike2bin.write_bin(all_stitched, fpath + '/data.bin','ab')
+                    
+                del all_stitched
+                    
             counter += 10000
-    
+                
+
         session_boundaries.append(session_boundaries[len(session_boundaries)-1]+counter)
 
         del stitched
-        del all_stitched
         
-        
-    write_config.write_config(config_ops,kilo_folder + '/config.m')
-    
     if run_kilo:
-        print('starting kilosort')
-#        self.kilo_done = False
-        run_kilosort(fpath,fpath + '/data.bin',fs,len(ttfiles),trodetype,self)        
-        print('done sorting')
+        write_config.write_config(config_ops,kilo_folder + '/config.m')
+        
+        if run_kilo:
+            print('starting kilosort')
+    #        self.kilo_done = False
+            run_kilosort(fpath,fpath + '/data.bin',fs,len(ttfiles),trodetype,self)        
+            print('done sorting')
         
     
     all_spike_times = np.load(kilo_folder+'/spike_times.npy', mmap_mode='r')
@@ -438,6 +444,7 @@ def batch_run(self,fpath,config_ops,acq):
                 waveforms,timestamps,fs,gain = load_oe.load_spikefile(filename)
                 
             stitched[fname] = spike2bin.stitch_waveforms(waveforms,timestamps - first_timestamp,fs,trodenum)
+
             wave_dict = {}
             ind_dict = {}
             for cluster in np.unique(trode_data[fname]['spike_clusters']):
@@ -446,10 +453,13 @@ def batch_run(self,fpath,config_ops,acq):
             for i in range(len(trode_data[fname]['spike_times'])):
                 wave_dict[str(trode_data[fname]['spike_clusters'][i][0])].append(np.swapaxes(stitched[fname][:,int(trode_data[fname]['spike_times'][i]-8):int(trode_data[fname]['spike_times'][i]+24)],0,1))
                 ind_dict[str(trode_data[fname]['spike_clusters'][i][0])].append(i)
-                
+
             for cluster in np.unique(trode_data[fname]['spike_clusters']):
                 
-                wave_dict[str(cluster)] = np.swapaxes(np.asarray(wave_dict[str(cluster)]),0,2).copy()
+                try:
+                    wave_dict[str(cluster)] = np.swapaxes(np.asarray(wave_dict[str(cluster)]),0,2).copy()
+                except:
+                    continue
                 ind_dict[str(cluster)] = np.asarray(ind_dict[str(cluster)])
                 trode_data[fname]['spike_clusters'].setflags(write=1)
                 
@@ -472,10 +482,13 @@ def batch_run(self,fpath,config_ops,acq):
             
             og_filename = dirname + '/' + ttfiles[trode]
             
-            if trodetype == 'tetrode':
-                kilo2ntt.write_ntt(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, gain, acq, ttfiles[trode], og_filename, first_timestamp)
-            elif trodetype == 'stereotrode':
-                kilo2ntt.write_nst(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, gain, acq, ttfiles[trode], og_filename, first_timestamp)
+            try:
+                if trodetype == 'tetrode':
+                    kilo2ntt.write_ntt(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, gain, acq, ttfiles[trode], og_filename, first_timestamp)
+                elif trodetype == 'stereotrode':
+                    kilo2ntt.write_nst(stitched, trode_data[ttfiles[trode]]['spike_times'], trode_data[ttfiles[trode]]['spike_clusters'], kilo_folder, trode+1, fs, gain, acq, ttfiles[trode], og_filename, first_timestamp)
+            except:
+                continue
     
     print('Done!')
     
