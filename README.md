@@ -17,5 +17,3 @@ KiloSort in kilosort_control directory is modified from https://github.com/corte
 plugin-GUI in oe_control directory is modified from https://github.com/open-ephys/plugin-GUI
 
 only tested on 64-bit Windows 10
-
-USE AT YOUR OWN RISK
